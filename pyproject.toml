@@ -3,72 +3,36 @@
   version = "0.1.0"
   description = "Scripts for the running MUSC in the URANIE framework"
   readme = "README.md"
-  requires-python = "<4.0.0,>=3.10"
+  requires-python = "<3.13,>=3.10"
   dependencies = [
+    "click>=8.2.0",
     "loguru",
-  ]
+    "luigi>=3.6.0",
+    "pydantic>=2.12.1",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.5",
+    "setuptools>=80.9.0",
+]
 
-  [project.optional-dependencies]
-    dev = [
-      "black>23.10.0",
-      "flake8>=4.0.1, <5.0.0",
-      "flakeheaven<3.3.0",
-      "isort>5.12.0",
-      "ruff>0.1.0",
-      "pydoclint>0.3.8",
-      "ipdb",
-    ]
+[dependency-groups]
+  dev = [
+    "pre-commit>=4.2.0",
+    "black>23.10.0",
+    "flake8>=4.0.1, <5.0.0",
+    "flakeheaven<3.3.0",
+    "isort>5.12.0",
+    "ruff>0.1.0",
+    "pydoclint>0.3.8",
+    "setuptools>=80.9.0",    # needed by isort
+    "ipdb",
+  ]
 
 [build-system]
   requires = ["pdm-backend"]
   build-backend = "pdm.backend"
 
-# [tool.pdm.scripts]
-#   [project.scripts]
-#     dmt = "deode_workflow_monitoring.__main__:main"
+  [project.scripts]
+    uranmusc = "uranmusc.__main__:main"
 
 [tool.black]
   line-length = 90
-
-[tool.flakeheaven]
-  base = ".flakeheaven.toml"
-
-[tool.isort]
-  line_length = 90
-  profile = "black"
-
-[tool.ruff]
-  line-length = 90
-  select = [
-    "A",
-    "ARG",
-    "B",
-    "BLE",
-    "C4",
-    "C90",
-    "D",
-    "E",
-    "ERA",
-    "EXE",
-    "F",
-    "G",
-    "I",
-    "N",
-    "PD",
-    "PERF",
-    "PIE",
-    "PL",
-    "PT",
-    "Q",
-    "RET",
-    "RSE",
-    "RUF",
-    "S",
-    "SIM",
-    "SLF",
-    "T20",
-    "W",
-  ]
-
-  [tool.ruff.pydocstyle]
-    convention = "google"
