@@ -9,4 +9,4 @@ variables:
     namelist_flags: ["@SPP@"]
 doe:
     sample_size: URA_TRAIN
-    distribution: "lhs" 
+    distribution: "lhs"
