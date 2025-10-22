@@ -13,9 +13,9 @@ experiment:
   ura_init_namelist: nam/doe_musc_sensitivity.yml
 git_repos:
   harmonie:
-    repo: /hpcperm/dnk3604/harmonie_releases/musc_dev-CY49T2h/
-    url: git@github.com:Hirlam/HarmonieCSC.git
-    branch: dev-CY49T2h
+    repo: /hpcperm/dnk3604/harmonie_releases/mafdmi_musc_dev-CY49T2h/
+    url: git@github.com:mafdmi/HarmonieCSC.git
+    branch: feature/extract-python-script-from-musc-convert-to-netcdf
   ddhtoolbox:
     repo: /hpcperm/dnk3604/ddhtoolbox/
     url: git@github.com:UMR-CNRM/ddhtoolbox.git

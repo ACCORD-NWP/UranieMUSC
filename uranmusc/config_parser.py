@@ -15,6 +15,7 @@ class GeneralConfig(BaseModel):
     musc_data_dir: Path
     hm_home: Path
     scratch_hm_home: Path
+    bin_dir: Optional[Path] = None
     grp: Optional[str] = None
 
 

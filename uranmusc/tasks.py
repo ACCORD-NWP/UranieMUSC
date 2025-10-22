@@ -7,7 +7,7 @@ import tempfile
 import warnings
 from datetime import datetime
 from pathlib import Path
-from typing import Literal, Optional, cast
+from typing import cast
 
 import luigi
 import yaml
@@ -121,42 +121,33 @@ class BuildExperiment(RerunBaseTask):
 
     def run(self):
         exp_name = config.experiment.name
-        build: Optional[Literal["yes", "no"]] = "no"
-        if self.bin_dir is not None:
-            bin_dir_path = Path(self.bin_dir).expanduser().absolute()
+        bin_dir = config.general.bin_dir
+        if bin_dir is not None:
+            bin_dir_path = Path(bin_dir).expanduser().absolute()
             if bin_dir_path.exists():
                 logger.info(
-                    f"Found build dir {bin_dir_path}. Copy over bin dir"
-                    f" to {config.scratch_exp_dir} and do InitRun."
+                    f"Found build dir {bin_dir_path}. Install experiment in "
+                    f"{config.scratch_exp_dir} without building."
                 )
-                target_dir = config.scratch_exp_dir / "bin"
-                if target_dir.exists():
-                    logger.info(
-                        f"Removing old bin dir {target_dir} before copying new one."
-                    )
-                    target_dir.rmdir()
-                shutil.copytree(self.bin_dir, target_dir)
-
-                # Create an empty output file
-                self.output().open("w").close()
-
-                logger.info(f"Do InitRun for experiment {exp_name}")
+                os.environ["BUILD"] = "no"
+                os.environ["BINDIR"] = str(bin_dir)
             else:
-                raise RuntimeError(f"Could not find build dir {bin_dir_path}")
+                raise RuntimeError(
+                    f"Could not find build dir {bin_dir_path}."
+                    " Make sure to point to an existing bin dir."
+                )
         else:
             logger.info(f"Building experiment {exp_name}")
-            build = "yes"
 
         # Run the build command
         subprocess.run(
             [
                 config.git_repos.harmonie.repo / "config-sh/Harmonie",
                 "install",
-                f"BUILD={build}",
-                "BUILD_WITH=cmake",
             ],
             cwd=config.home_exp_dir,
             check=True,
+            env=os.environ,
         )
 
         # Call your function to wait for the ecflow node to complete
