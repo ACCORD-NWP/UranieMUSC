@@ -1,16 +1,31 @@
 general:
   ura_env: /hpcperm/cu0k/URANIE/uranie.env
-  musc_data_dir: /hpcperm/dnk3604/musc/HarmonieMuscData/musc_ref
+  musc_data_dir: /hpcperm/dnk3604/musc/HarmonieMuscData/SCLDDN
   hm_home: /home/dnk3604/hm_home
   scratch_hm_home: /scratch/dnk3604/hm_home
+  # bin_dir: /scratch/dnk3604/hm_home/Test11/bin
   grp: accord
 experiment:
-  name: Test5
+  name: Test11
+  # name: SCLDDN_case
   fc_length: 6
   musc_id: DEF
   musc_case: REFL65
+  # musc_case: SCLDDN
+  # musc_namelist: /hpcperm/dnk3604/harmonie_releases/mafdmi_musc_dev-CY49T2h/util/musc/test/SCLDDN/namelist_atm_SCLDDN 
   ura_init: uranmusc/doe_sensitivity.py
-  ura_init_namelist: nam/doe_musc_sensitivity.yml
+  design_of_experiment:
+    trajectories: 5
+    levels: 20 
+    data_files:
+      dataserver: init_doe.dat
+      # namelist_dir: /hpcperm/dnk3604/harmonie_releases/mafdmi_musc_dev-CY49T2h/util/musc/test/SCLDDN
+      namelist_template: namelist_atm_DEF
+    variables:
+      inputs: ["VSIGQSAT"]
+      minima: [0.01]
+      maxima: [0.5]
+      namelist_flags: ["@VSIGQSAT@"]
 git_repos:
   harmonie:
     repo: /hpcperm/dnk3604/harmonie_releases/mafdmi_musc_dev-CY49T2h/

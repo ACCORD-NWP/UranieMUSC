@@ -166,12 +166,10 @@ class SetupMusc(RerunBaseTask):
         ]
 
     def output(self):
-        output_namelist_name = f"namelist_atm_{config.experiment.musc_id}"
         return [
             luigi.LocalTarget(config.home_exp_dir / "musc_run.sh"),
             luigi.LocalTarget(config.home_exp_dir / "musc_convert_netcdf.sh"),
             luigi.LocalTarget(config.home_exp_dir / "variable_list.csv"),
-            luigi.LocalTarget(config.home_exp_dir / output_namelist_name),
         ]
 
     def run(self):
@@ -189,18 +187,47 @@ class SetupMusc(RerunBaseTask):
             check=True,
         )
 
-        logger.info("Generating namelist")
-        subprocess.run(
-            [
-                config.home_exp_dir / "musc_namelist.sh",
-                "-l",
-                str(config.experiment.fc_length),
-                "-i",
-                config.experiment.musc_id,
-            ],
-            cwd=config.home_exp_dir,
-            check=True,
-        )
+
+class SetupMuscNamelists(RerunBaseTask):
+    bin_dir = luigi.Parameter(default=None)
+
+    def requires(self):
+        return [
+            CloneRepos(rerun_all=self.rerun_all),
+            SetupExperiment(rerun_all=self.rerun_all),
+            BuildExperiment(bin_dir=self.bin_dir, rerun_all=self.rerun_all),
+        ]
+
+    def output(self):
+        atm_namelist_name = f"namelist_atm_{config.experiment.musc_id}"
+        sfx_namelist_name = f"namelist_sfx_{config.experiment.musc_id}"
+        return [
+            luigi.LocalTarget(config.home_exp_dir / atm_namelist_name),
+            luigi.LocalTarget(config.home_exp_dir / sfx_namelist_name),
+        ]
+
+    def run(self):
+        doe = config.experiment.design_of_experiment
+        if doe.data_files.namelist_dir is not None:
+            logger.info("Using MUSC namelists from %s", doe.data_files.namelist_dir)
+            namelist_files = doe.data_files.namelist_dir.glob(
+                doe.data_files.namelist_template
+            )
+            for file_ in namelist_files:
+                shutil.copy(file_, config.home_exp_dir)
+        else:
+            logger.info("Generating namelists for experiment %s", config.experiment.name)
+            subprocess.run(
+                [
+                    config.home_exp_dir / "musc_namelist.sh",
+                    "-l",
+                    str(config.experiment.fc_length),
+                    "-i",
+                    config.experiment.musc_id,
+                ],
+                cwd=config.home_exp_dir,
+                check=True,
+            )
 
 
 class RunUranie(RerunBaseTask):
@@ -212,29 +239,22 @@ class RunUranie(RerunBaseTask):
             SetupExperiment(rerun_all=self.rerun_all),
             BuildExperiment(bin_dir=self.bin_dir, rerun_all=self.rerun_all),
             SetupMusc(bin_dir=self.bin_dir, rerun_all=self.rerun_all),
+            SetupMuscNamelists(bin_dir=self.bin_dir, rerun_all=self.rerun_all),
         ]
 
     def output(self):
-        # Get settings from ura_init_nam file to determine expected output
-        with open(config.experiment.ura_init_namelist, "r", encoding="utf-8") as file:
-            settings = yaml.safe_load(file)
-            dataserver_file_name = settings["data_files"]["dataserver"]
-            namelist_template = settings["data_files"]["namelist_template"]
-
+        # doe = config.experiment.design_of_experiment
         return [
-            luigi.LocalTarget(config.uranie_dir / dataserver_file_name),
-            luigi.LocalTarget(config.scratch_exp_dir / namelist_template),
+            luigi.LocalTarget(config.uranie_dir / doe.data_files.dataserver),
+            luigi.LocalTarget(config.scratch_exp_dir / doe.data_files.namelist_template),
         ]
 
     def run(self):
         logger.info("Preparing URANIE namelist")
-
-        with open(config.experiment.ura_init_namelist, "r", encoding="utf-8") as file_:
-            uranie_init_namelist = yaml.safe_load(file_)
-
+        # Dump DOE config to file
+        config.experiment.design_of_experiment.to_yaml(config.scratch_exp_dir)
         # Copy over files
         shutil.copy(config.experiment.ura_init, config.scratch_exp_dir)
-        shutil.copy(config.experiment.ura_init_namelist, config.scratch_exp_dir)
 
         # Replace variables in namelist
         namelist_template_filename = uranie_init_namelist["data_files"][
