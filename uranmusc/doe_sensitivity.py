@@ -31,10 +31,10 @@ def parse_yaml(yaml_file):
             if not settings["variables"][key]:
                 missing_keys.append(key)
     for key in DOE:
-        if key not in settings["doe"].keys():
+        if key not in settings.keys():
             missing_keys.append(key)
         else:
-            if not settings["doe"][key]:
+            if not settings[key]:
                 missing_keys.append(key)
 
     if missing_keys:
@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
     # 3. Create samples
     sampler = Sensitivity.TMorris(
-        ds, dummy_model, settings["doe"]["trajectories"], settings["doe"]["levels"]
+        ds, dummy_model, settings["trajectories"], settings["levels"]
     )
     sampler.generateSample()
 

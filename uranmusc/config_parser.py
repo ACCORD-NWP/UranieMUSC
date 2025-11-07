@@ -95,7 +95,8 @@ class DesignOfExperimentConfig(BaseModel):
 
     def to_yaml(self, output_path: Path):
         model_dict = self.model_dump(mode="json", exclude_none=True)
-        yaml.dump(model_dict, output_path)
+        with open(output_path, "w", encoding="utf-8") as file_:
+            yaml.dump(model_dict, file_)
 
 
 class GitRepositoryConfig(BaseModel):
@@ -163,7 +164,7 @@ class Config(BaseModel):
 
     @computed_field
     @property
-    def namelist(self):
+    def namelist(self) -> Path:
         doe = self.experiment.design_of_experiment
         if doe.data_files.namelist_dir is None:
             return self.home_exp_dir / doe.data_files.namelist_template

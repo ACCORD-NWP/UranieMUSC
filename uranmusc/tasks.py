@@ -200,21 +200,21 @@ class SetupMuscNamelists(RerunBaseTask):
 
     def output(self):
         atm_namelist_name = f"namelist_atm_{config.experiment.musc_id}"
-        sfx_namelist_name = f"namelist_sfx_{config.experiment.musc_id}"
+        # sfx_namelist_name = f"namelist_sfx_{config.experiment.musc_id}"
         return [
             luigi.LocalTarget(config.home_exp_dir / atm_namelist_name),
-            luigi.LocalTarget(config.home_exp_dir / sfx_namelist_name),
+            # luigi.LocalTarget(config.home_exp_dir / sfx_namelist_name),
         ]
 
     def run(self):
         doe = config.experiment.design_of_experiment
         if doe.data_files.namelist_dir is not None:
             logger.info("Using MUSC namelists from %s", doe.data_files.namelist_dir)
-            namelist_files = doe.data_files.namelist_dir.glob(
-                doe.data_files.namelist_template
-            )
-            for file_ in namelist_files:
-                shutil.copy(file_, config.home_exp_dir)
+            # namelist_files = doe.data_files.namelist_dir.glob(
+            #     doe.data_files.namelist_template
+            # )
+            # for file_ in namelist_files:
+            shutil.copy(config.namelist, config.home_exp_dir)
         else:
             logger.info("Generating namelists for experiment %s", config.experiment.name)
             subprocess.run(
@@ -243,7 +243,7 @@ class RunUranie(RerunBaseTask):
         ]
 
     def output(self):
-        # doe = config.experiment.design_of_experiment
+        doe = config.experiment.design_of_experiment
         return [
             luigi.LocalTarget(config.uranie_dir / doe.data_files.dataserver),
             luigi.LocalTarget(config.scratch_exp_dir / doe.data_files.namelist_template),
@@ -251,26 +251,19 @@ class RunUranie(RerunBaseTask):
 
     def run(self):
         logger.info("Preparing URANIE namelist")
+        doe = config.experiment.design_of_experiment
         # Dump DOE config to file
-        config.experiment.design_of_experiment.to_yaml(config.scratch_exp_dir)
+        doe.to_yaml(config.scratch_exp_dir / "doe.yml")
         # Copy over files
         shutil.copy(config.experiment.ura_init, config.scratch_exp_dir)
 
-        # Replace variables in namelist
-        namelist_template_filename = uranie_init_namelist["data_files"][
-            "namelist_template"
-        ]
-
-        variables = uranie_init_namelist["variables"]["inputs"]
-        with open(
-            config.home_exp_dir / namelist_template_filename, "r", encoding="utf-8"
-        ) as file_:
+        with open(config.namelist, "r", encoding="utf-8") as file_:
             namelist = file_.read()
-            for var in variables:
+            for var in doe.variables.inputs:
                 # NOTE: The space before and after @{var}@ is needed for URANIE to work
                 namelist = re.sub(rf"{var}=.*", rf"{var}= @{var}@ ,", namelist, count=1)
         with open(
-            config.scratch_exp_dir / namelist_template_filename, "w", encoding="utf-8"
+            config.scratch_exp_dir / config.namelist.name, "w", encoding="utf-8"
         ) as file_:
             file_.write(namelist)
 
@@ -278,7 +271,7 @@ class RunUranie(RerunBaseTask):
         subprocess.run(
             f"cd {config.scratch_exp_dir} && source {config.general.ura_env} && "
             f"python3 {config.experiment.ura_init.name} "
-            f"{config.scratch_exp_dir / config.experiment.ura_init_namelist.name}",
+            f"{config.scratch_exp_dir / 'doe.yml'}",
             check=True,
             shell=True,
         )
@@ -331,13 +324,6 @@ class RunMusc(RerunBaseTask):
         return all(map(lambda output: output.exists(), outputs))
 
     def run(self):
-        with open(config.experiment.ura_init_namelist, "r", encoding="utf-8") as file_:
-            uranie_init_namelist = yaml.safe_load(file_)
-
-        # Replace variables in namelist
-        namelist_template_filename = uranie_init_namelist["data_files"][
-            "namelist_template"
-        ]
         # Get missing output folders and their indices
         output_dirs = [Path(output_file.path).parent for output_file in self.output()]
         output_indices = [int(dir_.name.split("_")[2]) for dir_ in output_dirs]
@@ -357,18 +343,18 @@ class RunMusc(RerunBaseTask):
         commands = []
         for run_num, run_dir in enumerate(launcher_dirs, start=1):
             shutil.copy(
-                run_dir / namelist_template_filename,
-                config.home_exp_dir / f"{namelist_template_filename}_URA_{run_num}",
+                run_dir / config.namelist.name,
+                config.home_exp_dir / f"{config.namelist.name}_URA_{run_num}",
             )
-            if "atm" in namelist_template_filename:
-                sfx_namelist_filename = namelist_template_filename.replace("atm", "sfx")
+            if "atm" in config.namelist.name:
+                sfx_namelist_filename = config.namelist.name.replace("atm", "sfx")
                 target_link: Path = config.home_exp_dir / (
                     sfx_namelist_filename + f"_URA_{run_num}"
                 )
                 target_link.unlink(missing_ok=True)
                 os.symlink(config.home_exp_dir / sfx_namelist_filename, target_link)
-            elif "sfx" in namelist_template_filename:
-                atm_namelist_filename = namelist_template_filename.replace("sfx", "atm")
+            elif "sfx" in config.namelist.name:
+                atm_namelist_filename = config.namelist.name.replace("sfx", "atm")
                 target_link = (
                     config.home_exp_dir / f"{atm_namelist_filename}_URA_{run_num}"
                 )
