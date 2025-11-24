@@ -1,6 +1,6 @@
 <div align="center">
 
-# <code>[UranMusc](https://github.com/mafdmi/UranMusc)</code><br>Running MUSC in the Uranie framework
+<code>[UranieMusc](https://github.com/ACCORD-NWP/UranieMUSC)</code><br>Running MUSC in the Uranie framework
 
 </div>
 Repo for running MUSC in Uranie framework
