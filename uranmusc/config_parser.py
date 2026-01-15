@@ -116,8 +116,10 @@ class DesignOfExperimentConfig(BaseModel):
             return getattr(self, key)
         return self.__pydantic_extra__.get(key)
 
-    def to_yaml(self, output_path: Path):
+    def to_yaml(self, output_path: Path, musc_id: str):
         model_dict = self.model_dump(mode="json", exclude_none=True)
+        # Append musc_id to namelist_template before saving
+        model_dict["data_files"]["namelist_template"] += musc_id
         with open(output_path, "w", encoding="utf-8") as file_:
             yaml.dump(model_dict, file_)
 

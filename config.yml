@@ -7,19 +7,16 @@ general:
   grp: accord
 experiment:
   name: Test12
-  # name: SCLDDN_case
   fc_length: 6
-  musc_id: DEF
-  musc_case: REFL65
-  # musc_case: SCLDDN
+  musc_id: SCLDDN
+  musc_case: SCLDDN
   ura_init: uranmusc/doe_sensitivity.py
-  # ura_init_namelist: doe_sensitivity.yml
   design_of_experiment:
     trajectories: 5
     levels: 20
     data_files:
       dataserver: init_doe.dat
-      # namelist_dir: /hpcperm/dnk3604/harmonie_releases/mfroelund_musc_dev-CY49T2h/util/musc/test/
+      namelist_dir: /hpcperm/dnk3604/harmonie_releases/mfroelund_musc_dev-CY49T2h/util/musc/test/
       namelist_template:  namelist_atm_
     variables:
       inputs: ["VSIGQSAT"]

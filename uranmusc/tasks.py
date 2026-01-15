@@ -248,7 +248,7 @@ class RunUranie(RerunBaseTask):
         logger.info("Preparing URANIE namelist")
         doe = config.experiment.design_of_experiment
         # Dump DOE config to file
-        doe.to_yaml(config.scratch_exp_dir / "doe.yml")
+        doe.to_yaml(config.scratch_exp_dir / "doe.yml", musc_id=config.experiment.musc_id)
         # Copy over files
         shutil.copy(config.experiment.ura_init, config.scratch_exp_dir)
 
