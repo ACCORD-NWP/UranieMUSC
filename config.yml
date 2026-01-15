@@ -10,8 +10,8 @@ experiment:
   # name: SCLDDN_case
   fc_length: 6
   musc_id: DEF
-  # musc_case: REFL65
-  musc_case: SCLDDN
+  musc_case: REFL65
+  # musc_case: SCLDDN
   ura_init: uranmusc/doe_sensitivity.py
   # ura_init_namelist: doe_sensitivity.yml
   design_of_experiment:
@@ -19,8 +19,8 @@ experiment:
     levels: 20
     data_files:
       dataserver: init_doe.dat
-      namelist_dir: /hpcperm/dnk3604/harmonie_releases/mfroelund_musc_dev-CY49T2h/util/musc/test/SCLDDN
-      namelist_template: namelist_atm_SCLDDN
+      # namelist_dir: /hpcperm/dnk3604/harmonie_releases/mfroelund_musc_dev-CY49T2h/util/musc/test/
+      namelist_template:  namelist_atm_
     variables:
       inputs: ["VSIGQSAT"]
       minima: [0.01]

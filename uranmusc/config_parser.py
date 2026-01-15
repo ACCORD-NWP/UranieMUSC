@@ -63,7 +63,7 @@ class DataFilesConfig(BaseModel):
 
     dataserver: Path
     namelist_dir: Optional[Path] = None
-    namelist_template: Path
+    namelist_template: str
 
     def __getitem__(self, key: str) -> Any:
         """Method to access both defined and extra fields."""
@@ -189,8 +189,9 @@ class Config(BaseModel):
     @property
     def namelist(self) -> Path:
         doe = self.experiment.design_of_experiment
+        namelist_filename = doe.data_files.namelist_template + self.experiment.musc_id
         if doe.data_files.namelist_dir is None:
             # NOTE: The namelist files will be created in the SetupMuscNamelists
             # task and placed in the home experiment directory
-            return self.home_exp_dir / doe.data_files.namelist_template
-        return doe.data_files.namelist_dir / doe.data_files.namelist_template
+            return self.home_exp_dir / namelist_filename
+        return doe.data_files.namelist_dir / self.experiment.musc_case / namelist_filename
