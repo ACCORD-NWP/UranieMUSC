@@ -3,7 +3,7 @@
 import os
 import shutil
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 import yaml
 from pydantic import (
@@ -35,26 +35,6 @@ class ExperimentConfig(BaseModel):
     musc_case: str
     ura_init: Path
     design_of_experiment: "DesignOfExperimentConfig"
-
-    # @model_validator(mode="after")
-    # def check_musc_namelists(self):
-    #     if (
-    #         self.musc_namelists is not None
-    #         and self.design_of_experiment.data_files.namelist_template is not None
-    #     ):
-    #         raise ValueError(
-    #             "Cannot specify both musc_namelists and "
-    #             "design_of_experiment.data_files.namelist_template"
-    #         )
-    #     if (
-    #         self.musc_namelists is None
-    #         and self.design_of_experiment.data_files.namelist_template is None
-    #     ):
-    #         raise ValueError(
-    #             "Must specify either musc_namelists or "
-    #             "design_of_experiment.data_files.namelist_template"
-    #         )
-    #     return self
 
 
 class DataFilesConfig(BaseModel):
