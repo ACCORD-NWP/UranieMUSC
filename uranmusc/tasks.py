@@ -259,7 +259,7 @@ class RunUranie(RerunBaseTask):
 
         with open(config.namelist, "r", encoding="utf-8") as file_:
             namelist = file_.read()
-            for var in doe.variables.inputs:
+            for var in doe.variables["inputs"]:
                 # NOTE: The space before and after @{var}@ is needed for URANIE to work
                 namelist = re.sub(rf"{var}=.*", rf"{var}= @{var}@ ,", namelist, count=1)
         with open(

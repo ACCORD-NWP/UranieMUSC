@@ -6,7 +6,7 @@ general:
   # bin_dir: /scratch/dnk3604/hm_home/Test11/bin
   grp: accord
 experiment:
-  name: Test11
+  name: Test12
   # name: SCLDDN_case
   fc_length: 6
   musc_id: DEF
@@ -19,8 +19,7 @@ experiment:
     levels: 20
     data_files:
       dataserver: init_doe.dat
-      # namelist_dir: /home/dnk3604/hm_home/Test11/
-      namelist_dir: /hpcperm/dnk3604/harmonie_releases/mafdmi_musc_dev-CY49T2h/util/musc/test/SCLDDN
+      namelist_dir: /hpcperm/dnk3604/harmonie_releases/mfroelund_musc_dev-CY49T2h/util/musc/test/SCLDDN
       namelist_template: namelist_atm_SCLDDN
     variables:
       inputs: ["VSIGQSAT"]
@@ -29,9 +28,9 @@ experiment:
       namelist_flags: ["@VSIGQSAT@"]
 git_repos:
   harmonie:
-    repo: /hpcperm/dnk3604/harmonie_releases/mafdmi_musc_dev-CY49T2h/
-    url: git@github.com:mafdmi/HarmonieCSC.git
-    branch: feature/extract-python-script-from-musc-convert-to-netcdf
+    repo: /hpcperm/dnk3604/harmonie_releases/mfroelund_musc_dev-CY49T2h/
+    url: git@github.com:Hirlam/HarmonieCSC.git
+    branch: dev-CY49T2h
   ddhtoolbox:
     repo: /hpcperm/dnk3604/ddhtoolbox/
     url: git@github.com:UMR-CNRM/ddhtoolbox.git

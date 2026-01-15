@@ -3,10 +3,16 @@
 import os
 import shutil
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import yaml
-from pydantic import BaseModel, computed_field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    computed_field,
+    field_validator,
+    model_validator,
+)
 
 
 class GeneralConfig(BaseModel):
@@ -52,9 +58,18 @@ class ExperimentConfig(BaseModel):
 
 
 class DataFilesConfig(BaseModel):
+    # Any extra fields are allowed to support custom options for the data files.
+    model_config = ConfigDict(extra="allow")
+
     dataserver: Path
     namelist_dir: Optional[Path] = None
     namelist_template: Path
+
+    def __getitem__(self, key: str) -> Any:
+        """Method to access both defined and extra fields."""
+        if key in self.__class__.model_fields:
+            return getattr(self, key)
+        return self.__pydantic_extra__.get(key)
 
 
 class VariablesConfig(BaseModel):
@@ -86,12 +101,18 @@ class VariablesConfig(BaseModel):
 class DesignOfExperimentConfig(BaseModel):
     """Design of experiment configuration."""
 
-    trajectories: Optional[int] = None
-    levels: Optional[int] = None
-    sample_size: Optional[str] = None
-    distribution: Optional[str] = None
+    # Any extra fields are allowed to support custom options for the design
+    # of experiment (e.g. trajectories, levels, etc.)
+    model_config = ConfigDict(extra="allow")
+
     data_files: DataFilesConfig
-    variables: VariablesConfig
+    variables: Dict[str, List[Any]]
+
+    def __getitem__(self, key: str) -> Any:
+        """Method to access both defined and extra fields."""
+        if key in self.__class__.model_fields:
+            return getattr(self, key)
+        return self.__pydantic_extra__.get(key)
 
     def to_yaml(self, output_path: Path):
         model_dict = self.model_dump(mode="json", exclude_none=True)
@@ -167,5 +188,7 @@ class Config(BaseModel):
     def namelist(self) -> Path:
         doe = self.experiment.design_of_experiment
         if doe.data_files.namelist_dir is None:
+            # NOTE: The namelist files will be created in the SetupMuscNamelists
+            # task and placed in the home experiment directory
             return self.home_exp_dir / doe.data_files.namelist_template
         return doe.data_files.namelist_dir / doe.data_files.namelist_template
