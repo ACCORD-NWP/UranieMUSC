@@ -73,9 +73,11 @@ class DataFilesConfig(BaseModel):
 
 
 class VariablesConfig(BaseModel):
+    # Any extra fields are allowed to support custom options for the variables
+    # (e.g. minima/maxima, etc.)
+    model_config = ConfigDict(extra="allow")
+
     inputs: List[str]
-    minima: List[float]
-    maxima: List[float]
     namelist_flags: List[str]
 
     @field_validator("namelist_flags", mode="after")
@@ -106,7 +108,7 @@ class DesignOfExperimentConfig(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     data_files: DataFilesConfig
-    variables: Dict[str, List[Any]]
+    variables: VariablesConfig
 
     def __getitem__(self, key: str) -> Any:
         """Method to access both defined and extra fields."""
