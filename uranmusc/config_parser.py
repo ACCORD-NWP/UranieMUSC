@@ -3,7 +3,7 @@
 import os
 import shutil
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List, Literal, Optional
 
 import yaml
 from pydantic import (
@@ -87,6 +87,7 @@ class DesignOfExperimentConfig(BaseModel):
     # of experiment (e.g. trajectories, levels, etc.)
     model_config = ConfigDict(extra="allow")
 
+    type: Literal["morris_sensitivity", "sampling"]
     data_files: DataFilesConfig
     variables: VariablesConfig
 

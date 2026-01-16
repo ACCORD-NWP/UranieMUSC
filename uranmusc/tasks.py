@@ -265,7 +265,7 @@ class RunUranie(RerunBaseTask):
         logger.info("Running URANIE")
         subprocess.run(
             f"cd {config.scratch_exp_dir} && source {config.general.ura_env} && "
-            f"python3 {config.experiment.ura_init.name} "
+            f"python3 -m uranmusc {config.experiment.ura_init.name} "
             f"{config.scratch_exp_dir / 'doe.yml'}",
             check=True,
             shell=True,

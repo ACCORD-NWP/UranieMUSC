@@ -10,8 +10,9 @@ experiment:
   fc_length: 6
   musc_id: SCLDDN
   musc_case: SCLDDN
-  ura_init: uranmusc/doe_sensitivity.py
+  ura_init: uranmusc/doe.py
   design_of_experiment:
+    type: morris_sensitivity
     trajectories: 5
     levels: 20
     data_files:

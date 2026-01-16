@@ -1,54 +1,224 @@
 import os
 import sys
+from abc import ABC, abstractmethod
 
 import yaml
-from rootlogon import DataServer, Launcher, Sampler
+from rootlogon import DataServer, Launcher, Sampler, Sensitivity
+
+from uranmusc.config_parser import DesignOfExperimentConfig
 
 
 def usage():
     print("Usage: python3 doe.py <yaml-file>")
-    print("Example: python URA_EGO.py doe.yml")
+    print("Example: python doe.py doe.yml")
 
 
-FILES = ["dataserver", "namelist_template"]
-VARIABLES = ["inputs", "minima", "maxima", "namelist_flags"]
-DOE = ["sample_size", "distribution"]
+def parse_doe_config(doe_config):
+    """Parse DOE configuration from dict and return pydantic model.
+
+    Args:
+        doe_config: Dict containing the design of experiment configuration
+
+    Returns:
+        DesignOfExperimentConfig pydantic model
+    """
+    if isinstance(doe_config, dict):
+        config = DesignOfExperimentConfig(**doe_config)
+    elif isinstance(doe_config, DesignOfExperimentConfig):
+        config = doe_config
+    else:
+        raise TypeError("doe_config must be a dict or DesignOfExperimentConfig")
+
+    return config
 
 
-def parse_yaml(yaml_file):
-    with open(yaml_file, "r") as file:
-        settings = yaml.safe_load(file)
-    missing_keys = []
-    for key in FILES:
-        if key not in settings["data_files"].keys():
-            missing_keys.append(key)
-        else:
-            if not settings["data_files"][key]:
+class DOEStrategy(ABC):
+    """Base class for Design of Experiment strategies."""
+
+    @abstractmethod
+    def get_required_keys(self):
+        """Return list of required configuration keys for this DOE type."""
+        pass
+
+    @abstractmethod
+    def create_sampler(self, ds, config, dummy_model=None):
+        """Create and return the appropriate sampler for this DOE type.
+
+        Args:
+            ds: URANIE DataServer
+            config: DesignOfExperimentConfig pydantic model
+            dummy_model: Optional dummy model for strategies that need it
+        """
+        pass
+
+    @abstractmethod
+    def validate_settings(self, config):
+        """Validate that all required settings are present.
+
+        Args:
+            config: DesignOfExperimentConfig pydantic model
+        """
+        pass
+
+
+class SamplingDOE(DOEStrategy):
+    """Traditional sampling-based Design of Experiment using TSampling."""
+
+    def get_required_keys(self):
+        return ["sample_size", "distribution"]
+
+    def validate_settings(self, config):
+        missing_keys = []
+        for key in self.get_required_keys():
+            # Check if key exists in the extra fields
+            if not hasattr(config, key) and key not in config.__pydantic_extra__:
                 missing_keys.append(key)
-    for key in VARIABLES:
-        if key not in settings["variables"].keys():
-            missing_keys.append(key)
-        else:
-            if not settings["variables"][key]:
-                missing_keys.append(key)
-    for key in DOE:
-        if key not in settings["doe"].keys():
-            missing_keys.append(key)
-        else:
-            if not settings["doe"][key]:
-                missing_keys.append(key)
+            else:
+                value = getattr(config, key, None) or config.__pydantic_extra__.get(key)
+                if not value:
+                    missing_keys.append(key)
+        if missing_keys:
+            raise KeyError(f"Following keys are missing for Sampling DOE: {missing_keys}")
 
-    if missing_keys:
-        raise KeyError(f"Following keys are missing in the YAML-file: {missing_keys}")
+    def create_sampler(self, ds, config, dummy_model=None):
+        # Access doe parameters from config extra fields or nested doe dict
+        distribution = getattr(
+            config, "distribution", None
+        ) or config.__pydantic_extra__.get("distribution")
+        sample_size = getattr(
+            config, "sample_size", None
+        ) or config.__pydantic_extra__.get("sample_size")
+        return Sampler.TSampling(ds, distribution, sample_size)
 
-    inputs = dict()
-    for i, var in enumerate(settings["variables"]["inputs"]):
-        inputs[var] = {
-            "min": settings["variables"]["minima"][i],
-            "max": settings["variables"]["maxima"][i],
-            "flag": settings["variables"]["namelist_flags"][i],
-        }
-    return (settings, inputs)
+
+class MorrisSensitivityDOE(DOEStrategy):
+    """Morris sensitivity analysis Design of Experiment using TMorris."""
+
+    def get_required_keys(self):
+        return ["trajectories", "levels"]
+
+    def validate_settings(self, config):
+        missing_keys = []
+        for key in self.get_required_keys():
+            # Check if key exists in the extra fields
+            if not hasattr(config, key) and key not in config.__pydantic_extra__:
+                missing_keys.append(key)
+            else:
+                value = getattr(config, key, None) or config.__pydantic_extra__.get(key)
+                if not value:
+                    missing_keys.append(key)
+        if missing_keys:
+            raise KeyError(
+                f"Following keys are missing for Morris Sensitivity DOE: {missing_keys}"
+            )
+
+    def create_sampler(self, ds, config, dummy_model=None):
+        if dummy_model is None:
+            raise ValueError("Morris sensitivity analysis requires a dummy_model")
+
+        # Access Morris parameters from config extra fields
+        trajectories = getattr(
+            config, "trajectories", None
+        ) or config.__pydantic_extra__.get("trajectories")
+        levels = getattr(config, "levels", None) or config.__pydantic_extra__.get(
+            "levels"
+        )
+
+        return Sensitivity.TMorris(ds, dummy_model, trajectories, levels)
+
+
+class DOEFactory:
+    """Factory for creating appropriate DOE strategy based on configuration."""
+
+    _strategies = {
+        "sampling": SamplingDOE,
+        "morris_sensitivity": MorrisSensitivityDOE,
+    }
+
+    @classmethod
+    def register_strategy(cls, name, strategy_class):
+        """Register a new DOE strategy."""
+        if not issubclass(strategy_class, DOEStrategy):
+            raise ValueError("Strategy must inherit from DOEStrategy")
+        cls._strategies[name] = strategy_class
+
+    @classmethod
+    def create_strategy(cls, doe_type):
+        """Create a DOE strategy instance based on the type."""
+        if doe_type not in cls._strategies:
+            available = ", ".join(cls._strategies.keys())
+            raise ValueError(
+                f"Unknown DOE type: {doe_type}. Available types: {available}"
+            )
+        return cls._strategies[doe_type]()
+
+    @classmethod
+    def list_strategies(cls):
+        """List all available DOE strategies."""
+        return list(cls._strategies.keys())
+
+
+def run_doe(doe_config, namelist_dir=None, output_dir="./URANIE"):
+    """Main function to run Design of Experiment.
+
+    Args:
+        doe_config: Either a DesignOfExperimentConfig pydantic model, dict, or path to YAML file
+        namelist_dir: Directory containing the namelist template (optional, inferred from config if not provided)
+        output_dir: Directory to export the dataserver (default: ./URANIE)
+    """
+
+    # Load from YAML file for backward compatibility
+    with open(doe_config, "r", encoding="utf-8") as file:
+        config_dict = yaml.safe_load(file)
+    config = parse_doe_config(config_dict)
+    if namelist_dir is None:
+        namelist_dir = os.path.dirname(doe_config)
+
+    # Determine DOE type from config
+    # doe_type = getattr(config, "doe_type", None) or config.__pydantic_extra__.get(
+    #     "doe_type", "sampling"
+    # )
+    doe_type = config.type
+    print(f"Using DOE type: {doe_type}")
+
+    # Create appropriate strategy
+    strategy: DOEStrategy = DOEFactory.create_strategy(doe_type)
+    strategy.validate_settings(config)
+
+    # 1. Create the URANIE dataserver
+    ds = DataServer.TDataServer("tds", "Design of Experiment")
+    variables = config.variables
+    for i, var in enumerate(variables.inputs):
+        # Access minima, maxima, and namelist_flags from the VariablesConfig
+        minima = variables.__pydantic_extra__.get("minima", [])[i]
+        maxima = variables.__pydantic_extra__.get("maxima", [])[i]
+        flag = variables.namelist_flags[i]
+
+        ds.addAttribute(DataServer.TUniformDistribution(var, minima, maxima))
+        ds.getAttribute(var).setFileFlag(
+            os.path.join(namelist_dir, config.data_files.namelist_template),
+            flag,
+        )
+
+    # 2. Create the Dummy model
+    dummy_model = Launcher.TCode(ds, "echo Running dummy model; echo OK | cat > out.dat")
+    output_file = Launcher.TOutputFileKey("out.dat")
+    dummy_model.addOutputFile(output_file)
+
+    # 3. Create samples using the selected strategy
+    sampler = strategy.create_sampler(ds, config, dummy_model)
+    sampler.generateSample()
+
+    # 4. Create Launcher and run the model
+    launcher = Launcher.TLauncher(ds, dummy_model)
+    launcher.setSave()
+    launcher.setClean()
+    launcher.run()
+
+    # 5. Export the dataserver
+    os.makedirs(output_dir, exist_ok=True)
+    ds.exportData(os.path.join(output_dir, str(config.data_files.dataserver)))
+    print("DOE completed successfully")
 
 
 if __name__ == "__main__":
@@ -59,36 +229,4 @@ if __name__ == "__main__":
     else:
         yaml_file = sys.argv[1]
 
-    # 0. Parse the namelist file
-    settings, inputs = parse_yaml(yaml_file)
-    namdir = os.path.dirname(yaml_file)
-    # 1. Create the URANIE dataserver
-    ds = DataServer.TDataServer("tds", "Design of Experiment")
-    for var in inputs:
-        ds.addAttribute(
-            DataServer.TUniformDistribution(var, inputs[var]["min"], inputs[var]["max"])
-        )
-        ds.getAttribute(var).setFileFlag(
-            os.path.join(namdir, settings["data_files"]["namelist_template"]),
-            inputs[var]["flag"],
-        )
-
-    # 2. Create the Dummy model
-    dummy_model = Launcher.TCode(ds, "echo Running dummy model; echo OK | cat > out.dat")
-    output_file = Launcher.TOutputFileKey("out.dat")
-    dummy_model.addOutputFile(output_file)
-
-    # 3. Create samples
-    sampler = Sampler.TSampling(
-        ds, settings["doe"]["distribution"], settings["doe"]["sample_size"]
-    )
-    sampler.generateSample()
-
-    # 3. Create Launcher and run the model
-    launcher = Launcher.TLauncher(ds, dummy_model)
-    launcher.setSave()
-    launcher.setClean()
-    launcher.run()
-
-    # 4. Export the dataserver
-    ds.exportData(os.path.join("./URANIE", settings["data_files"]["dataserver"]))
+    run_doe(yaml_file)
