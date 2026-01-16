@@ -199,21 +199,16 @@ class SetupMuscNamelists(RerunBaseTask):
         ]
 
     def output(self):
-        atm_namelist_name = f"namelist_atm_{config.experiment.musc_id}"
-        # sfx_namelist_name = f"namelist_sfx_{config.experiment.musc_id}"
+        atm_namelist_name = "namelist_atm_" + config.experiment.musc_id
         return [
             luigi.LocalTarget(config.home_exp_dir / atm_namelist_name),
-            # luigi.LocalTarget(config.home_exp_dir / sfx_namelist_name),
         ]
 
     def run(self):
         doe = config.experiment.design_of_experiment
         if doe.data_files.namelist_dir is not None:
-            logger.info("Using MUSC namelists from %s", doe.data_files.namelist_dir)
-            # namelist_files = doe.data_files.namelist_dir.glob(
-            #     doe.data_files.namelist_template
-            # )
-            # for file_ in namelist_files:
+            namelist_dir = doe.data_files.namelist_dir / config.experiment.musc_case
+            logger.info("Using MUSC namelists from %s", namelist_dir)
             shutil.copy(config.namelist, config.home_exp_dir)
         else:
             logger.info("Generating namelists for experiment %s", config.experiment.name)
@@ -253,13 +248,13 @@ class RunUranie(RerunBaseTask):
         logger.info("Preparing URANIE namelist")
         doe = config.experiment.design_of_experiment
         # Dump DOE config to file
-        doe.to_yaml(config.scratch_exp_dir / "doe.yml")
+        doe.to_yaml(config.scratch_exp_dir / "doe.yml", musc_id=config.experiment.musc_id)
         # Copy over files
         shutil.copy(config.experiment.ura_init, config.scratch_exp_dir)
 
         with open(config.namelist, "r", encoding="utf-8") as file_:
             namelist = file_.read()
-            for var in doe.variables["inputs"]:
+            for var in doe.variables.inputs:
                 # NOTE: The space before and after @{var}@ is needed for URANIE to work
                 namelist = re.sub(rf"{var}=.*", rf"{var}= @{var}@ ,", namelist, count=1)
         with open(

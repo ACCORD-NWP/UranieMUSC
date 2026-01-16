@@ -3,7 +3,7 @@
 import os
 import shutil
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 import yaml
 from pydantic import (
@@ -36,26 +36,6 @@ class ExperimentConfig(BaseModel):
     ura_init: Path
     design_of_experiment: "DesignOfExperimentConfig"
 
-    # @model_validator(mode="after")
-    # def check_musc_namelists(self):
-    #     if (
-    #         self.musc_namelists is not None
-    #         and self.design_of_experiment.data_files.namelist_template is not None
-    #     ):
-    #         raise ValueError(
-    #             "Cannot specify both musc_namelists and "
-    #             "design_of_experiment.data_files.namelist_template"
-    #         )
-    #     if (
-    #         self.musc_namelists is None
-    #         and self.design_of_experiment.data_files.namelist_template is None
-    #     ):
-    #         raise ValueError(
-    #             "Must specify either musc_namelists or "
-    #             "design_of_experiment.data_files.namelist_template"
-    #         )
-    #     return self
-
 
 class DataFilesConfig(BaseModel):
     # Any extra fields are allowed to support custom options for the data files.
@@ -63,7 +43,7 @@ class DataFilesConfig(BaseModel):
 
     dataserver: Path
     namelist_dir: Optional[Path] = None
-    namelist_template: Path
+    namelist_template: str
 
     def __getitem__(self, key: str) -> Any:
         """Method to access both defined and extra fields."""
@@ -116,8 +96,10 @@ class DesignOfExperimentConfig(BaseModel):
             return getattr(self, key)
         return self.__pydantic_extra__.get(key)
 
-    def to_yaml(self, output_path: Path):
+    def to_yaml(self, output_path: Path, musc_id: str):
         model_dict = self.model_dump(mode="json", exclude_none=True)
+        # Append musc_id to namelist_template before saving
+        model_dict["data_files"]["namelist_template"] += musc_id
         with open(output_path, "w", encoding="utf-8") as file_:
             yaml.dump(model_dict, file_)
 
@@ -189,8 +171,9 @@ class Config(BaseModel):
     @property
     def namelist(self) -> Path:
         doe = self.experiment.design_of_experiment
+        namelist_filename = doe.data_files.namelist_template + self.experiment.musc_id
         if doe.data_files.namelist_dir is None:
             # NOTE: The namelist files will be created in the SetupMuscNamelists
             # task and placed in the home experiment directory
-            return self.home_exp_dir / doe.data_files.namelist_template
-        return doe.data_files.namelist_dir / doe.data_files.namelist_template
+            return self.home_exp_dir / namelist_filename
+        return doe.data_files.namelist_dir / self.experiment.musc_case / namelist_filename
