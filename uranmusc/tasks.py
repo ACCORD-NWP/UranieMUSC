@@ -199,9 +199,12 @@ class SetupMuscNamelists(RerunBaseTask):
         ]
 
     def output(self):
-        atm_namelist_name = "namelist_atm_" + config.experiment.musc_id
         return [
-            luigi.LocalTarget(config.home_exp_dir / atm_namelist_name),
+            luigi.LocalTarget(config.home_exp_dir / output_namelist_name)
+            for output_namelist_name in [
+                config.namelist_atm.name,
+                config.namelist_sfx.name,
+            ]
         ]
 
     def run(self):
@@ -209,7 +212,8 @@ class SetupMuscNamelists(RerunBaseTask):
         if doe.data_files.namelist_dir is not None:
             namelist_dir = doe.data_files.namelist_dir / config.experiment.musc_case
             logger.info("Using MUSC namelists from %s", namelist_dir)
-            shutil.copy(config.namelist, config.home_exp_dir)
+            shutil.copy(config.namelist_atm, config.home_exp_dir)
+            shutil.copy(config.namelist_sfx, config.home_exp_dir)
         else:
             logger.info("Generating namelists for experiment %s", config.experiment.name)
             subprocess.run(
@@ -241,7 +245,7 @@ class RunUranie(RerunBaseTask):
         doe = config.experiment.design_of_experiment
         return [
             luigi.LocalTarget(config.uranie_dir / doe.data_files.dataserver),
-            luigi.LocalTarget(config.scratch_exp_dir / config.namelist.name),
+            luigi.LocalTarget(config.scratch_exp_dir / config.namelist_atm.name),
         ]
 
     def run(self):
@@ -252,13 +256,13 @@ class RunUranie(RerunBaseTask):
         doe.to_yaml(tmp_doe_file.name, musc_id=config.experiment.musc_id)
 
         # Update and write namelist file to experiment dir
-        with open(config.namelist, "r", encoding="utf-8") as file_:
+        with open(config.namelist_atm, "r", encoding="utf-8") as file_:
             namelist = file_.read()
             for var in doe.variables.inputs:
                 # NOTE: The space before and after @{var}@ is needed for URANIE to work
                 namelist = re.sub(rf"{var}=.*", rf"{var}= @{var}@ ,", namelist, count=1)
         with open(
-            config.scratch_exp_dir / config.namelist.name, "w", encoding="utf-8"
+            config.scratch_exp_dir / config.namelist_atm.name, "w", encoding="utf-8"
         ) as file_:
             file_.write(namelist)
 
@@ -342,25 +346,20 @@ class RunMusc(RerunBaseTask):
         commands = []
         for run_num, run_dir in enumerate(launcher_dirs, start=1):
             shutil.copy(
-                run_dir / config.namelist.name,
-                config.home_exp_dir / f"{config.namelist.name}_URA_{run_num}",
+                run_dir / config.namelist_atm.name,
+                config.home_exp_dir / f"{config.namelist_atm.name}_URA_{run_num}",
             )
-            if "atm" in config.namelist.name:
-                sfx_namelist_filename = config.namelist.name.replace("atm", "sfx")
-                target_link: Path = config.home_exp_dir / (
-                    sfx_namelist_filename + f"_URA_{run_num}"
-                )
-                target_link.unlink(missing_ok=True)
-                os.symlink(config.home_exp_dir / sfx_namelist_filename, target_link)
-            elif "sfx" in config.namelist.name:
-                atm_namelist_filename = config.namelist.name.replace("sfx", "atm")
-                target_link = (
-                    config.home_exp_dir / f"{atm_namelist_filename}_URA_{run_num}"
-                )
-                target_link.unlink(missing_ok=True)
-                os.symlink(config.home_exp_dir / atm_namelist_filename, target_link)
-            else:
-                raise ValueError("Unknown namelist type")
+            target_link: Path = config.home_exp_dir / (
+                config.namelist_sfx.name + f"_URA_{run_num}"
+            )
+            target_link.unlink(missing_ok=True)
+            os.symlink(config.home_exp_dir / config.namelist_sfx.name, target_link)
+            target_link = (
+                config.home_exp_dir / f"{config.namelist_atm.name}_URA_{run_num}"
+            )
+            target_link.unlink(missing_ok=True)
+            os.symlink(config.home_exp_dir / config.namelist_atm.name, target_link)
+
             commands.append(
                 f"{config.home_exp_dir / 'musc_run.sh'} "
                 f"-d {config.general.musc_data_dir} "

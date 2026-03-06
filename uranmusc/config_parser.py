@@ -99,7 +99,9 @@ class DesignOfExperimentConfig(BaseModel):
     def to_yaml(self, output_path: Path, musc_id: str):
         model_dict = self.model_dump(mode="json", exclude_none=True)
         # Append musc_id to namelist_template before saving
-        model_dict["data_files"]["namelist_template"] += musc_id
+        model_dict["data_files"]["namelist_template"] = "_".join(
+            [model_dict["data_files"]["namelist_template"], "atm", musc_id]
+        )
         with open(output_path, "w", encoding="utf-8") as file_:
             yaml.dump(model_dict, file_)
 
@@ -174,9 +176,24 @@ class Config(BaseModel):
 
     @computed_field
     @property
-    def namelist(self) -> Path:
+    def namelist_atm(self) -> Path:
         doe = self.experiment.design_of_experiment
-        namelist_filename = doe.data_files.namelist_template + self.experiment.musc_id
+        namelist_filename = "_".join(
+            [doe.data_files.namelist_template, "atm", self.experiment.musc_id]
+        )
+        if doe.data_files.namelist_dir is None:
+            # NOTE: The namelist files will be created in the SetupMuscNamelists
+            # task and placed in the home experiment directory
+            return self.home_exp_dir / namelist_filename
+        return doe.data_files.namelist_dir / self.experiment.musc_case / namelist_filename
+
+    @computed_field
+    @property
+    def namelist_sfx(self) -> Path:
+        doe = self.experiment.design_of_experiment
+        namelist_filename = "_".join(
+            [doe.data_files.namelist_template, "sfx", self.experiment.musc_id]
+        )
         if doe.data_files.namelist_dir is None:
             # NOTE: The namelist files will be created in the SetupMuscNamelists
             # task and placed in the home experiment directory
