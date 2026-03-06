@@ -241,17 +241,17 @@ class RunUranie(RerunBaseTask):
         doe = config.experiment.design_of_experiment
         return [
             luigi.LocalTarget(config.uranie_dir / doe.data_files.dataserver),
-            luigi.LocalTarget(config.scratch_exp_dir / doe.data_files.namelist_template),
+            luigi.LocalTarget(config.scratch_exp_dir / config.namelist.name),
         ]
 
     def run(self):
         logger.info("Preparing URANIE namelist")
         doe = config.experiment.design_of_experiment
-        # Dump DOE config to file
-        doe.to_yaml(config.scratch_exp_dir / "doe.yml", musc_id=config.experiment.musc_id)
-        # Copy over files
-        shutil.copy(config.experiment.ura_init, config.scratch_exp_dir)
+        # Dump DOE config to temporary file
+        tmp_doe_file = tempfile.NamedTemporaryFile("w", delete=False, suffix=".yml")
+        doe.to_yaml(tmp_doe_file.name, musc_id=config.experiment.musc_id)
 
+        # Update and write namelist file to experiment dir
         with open(config.namelist, "r", encoding="utf-8") as file_:
             namelist = file_.read()
             for var in doe.variables.inputs:
@@ -265,12 +265,16 @@ class RunUranie(RerunBaseTask):
         logger.info("Running URANIE")
         subprocess.run(
             f"cd {config.scratch_exp_dir} && source {config.general.ura_env} && "
-            f"python3 -m uranmusc {config.experiment.ura_init.name} "
-            f"{config.scratch_exp_dir / 'doe.yml'}",
+            f"uv run python {config.project_dir / 'uranmusc/doe.py'} "
+            f"{tmp_doe_file.name}"
+            f" --output-dir {config.uranie_dir} "
+            f" --namelist-dir {config.scratch_exp_dir}",
             check=True,
             shell=True,
         )
         logger.info("URANIE finished")
+        # Clean up
+        os.unlink(tmp_doe_file.name)
 
 
 class RunMusc(RerunBaseTask):

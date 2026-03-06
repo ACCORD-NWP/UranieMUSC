@@ -33,7 +33,6 @@ class ExperimentConfig(BaseModel):
     fc_length: int
     musc_id: str
     musc_case: str
-    ura_init: Path
     design_of_experiment: "DesignOfExperimentConfig"
 
 
@@ -167,6 +166,11 @@ class Config(BaseModel):
     @property
     def output_dir(self) -> Path:
         return self.scratch_exp_dir / "OUTPUT"
+
+    @computed_field
+    @property
+    def project_dir(self) -> Path:
+        return Path(__file__).parents[1]
 
     @computed_field
     @property

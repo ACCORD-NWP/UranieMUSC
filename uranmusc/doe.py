@@ -1,16 +1,12 @@
-import os
-import sys
+import argparse
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 import yaml
+from loguru import logger
 from rootlogon import DataServer, Launcher, Sampler, Sensitivity
 
 from uranmusc.config_parser import DesignOfExperimentConfig
-
-
-def usage():
-    print("Usage: python3 doe.py <yaml-file>")
-    print("Example: python doe.py doe.yml")
 
 
 def parse_doe_config(doe_config):
@@ -158,13 +154,14 @@ class DOEFactory:
         return list(cls._strategies.keys())
 
 
-def run_doe(doe_config, namelist_dir=None, output_dir="./URANIE"):
+def run_doe(doe_config: Path, output_dir: Path, namelist_dir=None):
     """Main function to run Design of Experiment.
 
     Args:
-        doe_config: Either a DesignOfExperimentConfig pydantic model, dict, or path to YAML file
-        namelist_dir: Directory containing the namelist template (optional, inferred from config if not provided)
-        output_dir: Directory to export the dataserver (default: ./URANIE)
+        doe_config: Path to YAML file with DOE configuration
+        output_dir: Directory to export the dataserver
+        namelist_dir: Directory containing the namelist template (optional,
+            inferred from config if not provided)
     """
 
     # Load from YAML file for backward compatibility
@@ -172,14 +169,10 @@ def run_doe(doe_config, namelist_dir=None, output_dir="./URANIE"):
         config_dict = yaml.safe_load(file)
     config = parse_doe_config(config_dict)
     if namelist_dir is None:
-        namelist_dir = os.path.dirname(doe_config)
+        namelist_dir = doe_config.parent
 
-    # Determine DOE type from config
-    # doe_type = getattr(config, "doe_type", None) or config.__pydantic_extra__.get(
-    #     "doe_type", "sampling"
-    # )
     doe_type = config.type
-    print(f"Using DOE type: {doe_type}")
+    logger.info(f"Using DOE type: {doe_type}")
 
     # Create appropriate strategy
     strategy: DOEStrategy = DOEFactory.create_strategy(doe_type)
@@ -196,7 +189,7 @@ def run_doe(doe_config, namelist_dir=None, output_dir="./URANIE"):
 
         ds.addAttribute(DataServer.TUniformDistribution(var, minima, maxima))
         ds.getAttribute(var).setFileFlag(
-            os.path.join(namelist_dir, config.data_files.namelist_template),
+            str(namelist_dir / config.data_files.namelist_template),
             flag,
         )
 
@@ -216,17 +209,30 @@ def run_doe(doe_config, namelist_dir=None, output_dir="./URANIE"):
     launcher.run()
 
     # 5. Export the dataserver
-    os.makedirs(output_dir, exist_ok=True)
-    ds.exportData(os.path.join(output_dir, str(config.data_files.dataserver)))
-    print("DOE completed successfully")
+    output_dir.mkdir(exist_ok=True)
+    ds.exportData(str(output_dir / config.data_files.dataserver))
+    logger.info("DOE completed successfully")
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Run Design of Experiment from a YAML config file."
+    )
+    parser.add_argument(
+        "doe_config", type=Path, help="Path to the DOE YAML configuration file"
+    )
+    parser.add_argument(
+        "--output-dir", type=Path, help="Directory to export the dataserver"
+    )
+    parser.add_argument(
+        "--namelist-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Directory containing the namelist template "
+            "(default: inferred from doe_config path)"
+        ),
+    )
+    args = parser.parse_args()
 
-    if len(sys.argv) != 2:
-        usage()
-        sys.exit(1)
-    else:
-        yaml_file = sys.argv[1]
-
-    run_doe(yaml_file)
+    run_doe(args.doe_config, output_dir=args.output_dir, namelist_dir=args.namelist_dir)
