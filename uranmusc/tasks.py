@@ -296,35 +296,20 @@ class RunMusc(RerunBaseTask):
 
     def output(self):
         # Define the expected lfa files based on the number of output dirs
-        output_dirs = list(config.output_dir.glob(f"{config.experiment.musc_id}_*"))
+        uranie_output_dirs = list(config.uranie_dir.glob("UranieLauncher_*"))
+        run_numbers = [int(dir_.name.split("_")[1]) for dir_ in uranie_output_dirs]
+        output_dirs = sorted(
+            dir_
+            for run_number in run_numbers
+            for dir_ in config.output_dir.glob(
+                f"{config.experiment.musc_id}_*_{run_number}_*"
+            )
+        )
         first_output_files = [
             output_dir / "Out.000.0000.lfa" for output_dir in output_dirs
         ]
         # Return a LocalTarget for each  file needed
         return [luigi.LocalTarget(output_file) for output_file in first_output_files]
-
-    def complete(self):
-        """
-        If the task has any outputs, return ``True`` if all outputs exist.
-        Otherwise, return ``False``. If --rerun is True, return ``False``.
-        """
-        if self.rerun_all:
-            return not self.rerun_all
-
-        uranie_output_dirs = list(config.uranie_dir.glob("UranieLauncher_*"))
-        output_dirs = list(config.output_dir.glob(f"{config.experiment.musc_id}_*"))
-        if len(output_dirs) != len(uranie_output_dirs):
-            return False
-
-        outputs = luigi.task.flatten(self.output())
-        if len(outputs) == 0:
-            warnings.warn(
-                "Task %r without outputs has no custom complete() method" % self,
-                stacklevel=2,
-            )
-            return False
-
-        return all(map(lambda output: output.exists(), outputs))
 
     def run(self):
         # Get missing output folders and their indices
@@ -332,8 +317,10 @@ class RunMusc(RerunBaseTask):
         output_indices = [int(dir_.name.split("_")[2]) for dir_ in output_dirs]
         output_indices.sort()
 
+        uranie_launcher_dirs = list(config.uranie_dir.glob("UranieLauncher_*"))
+
         logger.info("Adjust URANIE namelists")
-        if not output_indices:
+        if not output_indices or len(uranie_launcher_dirs) != len(output_indices):
             launcher_dirs = [
                 path_ for path_ in config.uranie_dir.glob("UranieLauncher_*")
             ]
@@ -436,7 +423,15 @@ class ConvertLFAToNetCDF(RerunBaseTask):
 
     def output(self):
         # Define the expected nc files based on the number of output dirs
-        output_dirs = list(config.output_dir.glob(f"{config.experiment.musc_id}_*"))
+        uranie_output_dirs = list(config.uranie_dir.glob("UranieLauncher_*"))
+        run_numbers = [int(dir_.name.split("_")[1]) for dir_ in uranie_output_dirs]
+        output_dirs = sorted(
+            dir_
+            for run_number in run_numbers
+            for dir_ in config.output_dir.glob(
+                f"{config.experiment.musc_id}_*_{run_number}_*"
+            )
+        )
         example_files = [next(output_dir.glob("*")) for output_dir in output_dirs]
         date_strings = list(
             datetime.fromtimestamp(os.path.getctime(file_)).strftime("%y%m%d")
@@ -451,7 +446,7 @@ class ConvertLFAToNetCDF(RerunBaseTask):
 
     def run(self):
         # Copy over specific files to prepare for running conversion from output dirs
-        output_dirs = list(config.output_dir.glob(f"{config.experiment.musc_id}_*"))
+        output_dirs = [Path(output_file.path).parent for output_file in self.output()]
         for dir_ in output_dirs:
             shutil.copytree(
                 config.home_exp_dir / "config-sh",
