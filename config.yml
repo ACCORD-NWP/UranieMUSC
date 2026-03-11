@@ -1,6 +1,6 @@
 general:
   ura_env: /hpcperm/cu0k/URANIE/uranie.env
-  musc_data_dir: /hpcperm/dnk3604/musc/HarmonieMuscData/SCLDDN
+  musc_data_dir: /hpcperm/dnk3604/musc/HarmonieMuscData/musc_ref
   hm_home: /home/dnk3604/hm_home
   scratch_hm_home: /scratch/dnk3604/hm_home
   # bin_dir: /scratch/dnk3604/hm_home/Test11/bin

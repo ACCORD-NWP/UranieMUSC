@@ -64,8 +64,8 @@ class RunUranie(RerunBaseTask):
         logger.info("Running URANIE")
         subprocess.run(
             f"cd {self.config.scratch_exp_dir} && "
-            f"source {self.config.general.ura_env} && "
-            f"uv run python {self.config.project_dir / 'uranmusc/doe.py'} "
+            f"source {self.config.general.ura_env} && uv run python "
+            f"{self.config.project_dir / 'uranmusc/design_of_experiment.py'} "
             f"{tmp_doe_file.name}"
             f" --output-dir {self.config.uranie_dir} "
             f" --namelist-dir {self.config.scratch_exp_dir}",
