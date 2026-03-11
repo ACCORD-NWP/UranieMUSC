@@ -1,21 +1,33 @@
 general:
   ura_env: /hpcperm/cu0k/URANIE/uranie.env
-  musc_data_dir: /hpcperm/dnk3604/musc/HarmonieMuscData/musc_ref
+  musc_data_dir: /hpcperm/dnk3604/musc/HarmonieMuscData/SCLDDN
   hm_home: /home/dnk3604/hm_home
   scratch_hm_home: /scratch/dnk3604/hm_home
+  # bin_dir: /scratch/dnk3604/hm_home/Test11/bin
   grp: accord
 experiment:
-  name: Test5
+  name: Test12
   fc_length: 6
-  musc_id: DEF
-  musc_case: REFL65
+  musc_id: SCLDDN
+  musc_case: SCLDDN
   ura_init: uranmusc/doe_sensitivity.py
-  ura_init_namelist: nam/doe_musc_sensitivity.yml
+  design_of_experiment:
+    trajectories: 5
+    levels: 20
+    data_files:
+      dataserver: init_doe.dat
+      namelist_dir: /hpcperm/dnk3604/harmonie_releases/mfroelund_musc_dev-CY49T2h/util/musc/test/
+      namelist_template:  namelist_atm_
+    variables:
+      inputs: ["VSIGQSAT"]
+      minima: [0.01]
+      maxima: [0.5]
+      namelist_flags: ["@VSIGQSAT@"]
 git_repos:
   harmonie:
-    repo: /hpcperm/dnk3604/harmonie_releases/mafdmi_musc_dev-CY49T2h/
-    url: git@github.com:mafdmi/HarmonieCSC.git
-    branch: feature/extract-python-script-from-musc-convert-to-netcdf
+    repo: /hpcperm/dnk3604/harmonie_releases/mfroelund_musc_dev-CY49T2h/
+    url: git@github.com:Hirlam/HarmonieCSC.git
+    branch: dev-CY49T2h
   ddhtoolbox:
     repo: /hpcperm/dnk3604/ddhtoolbox/
     url: git@github.com:UMR-CNRM/ddhtoolbox.git

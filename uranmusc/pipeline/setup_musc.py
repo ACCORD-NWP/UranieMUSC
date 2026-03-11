@@ -1,4 +1,5 @@
 import logging
+import shutil
 import subprocess
 
 import luigi
@@ -25,12 +26,10 @@ class SetupMusc(RerunBaseTask):
         ]
 
     def output(self):
-        output_namelist_name = f"namelist_atm_{self.config.experiment.musc_id}"
         return [
             luigi.LocalTarget(self.config.home_exp_dir / "musc_run.sh"),
             luigi.LocalTarget(self.config.home_exp_dir / "musc_convert_netcdf.sh"),
             luigi.LocalTarget(self.config.home_exp_dir / "variable_list.csv"),
-            luigi.LocalTarget(self.config.home_exp_dir / output_namelist_name),
         ]
 
     def run(self):
@@ -48,15 +47,41 @@ class SetupMusc(RerunBaseTask):
             check=True,
         )
 
-        logger.info("Generating namelist")
-        subprocess.run(
-            [
-                self.config.home_exp_dir / "musc_namelist.sh",
-                "-l",
-                str(self.config.experiment.fc_length),
-                "-i",
-                self.config.experiment.musc_id,
-            ],
-            cwd=self.config.home_exp_dir,
-            check=True,
-        )
+
+class SetupMuscNamelists(RerunBaseTask):
+    bin_dir = luigi.Parameter(default=None)
+
+    def requires(self):
+        return [
+            CloneRepos(rerun_all=self.rerun_all),
+            SetupExperiment(rerun_all=self.rerun_all),
+            BuildExperiment(bin_dir=self.bin_dir, rerun_all=self.rerun_all),
+        ]
+
+    def output(self):
+        atm_namelist_name = "namelist_atm_" + self.config.experiment.musc_id
+        return [
+            luigi.LocalTarget(self.config.home_exp_dir / atm_namelist_name),
+        ]
+
+    def run(self):
+        doe = self.config.experiment.design_of_experiment
+        if doe.data_files.namelist_dir is not None:
+            namelist_dir = doe.data_files.namelist_dir / self.config.experiment.musc_case
+            logger.info("Using MUSC namelists from %s", namelist_dir)
+            shutil.copy(self.config.namelist, self.config.home_exp_dir)
+        else:
+            logger.info(
+                "Generating namelists for experiment %s", self.config.experiment.name
+            )
+            subprocess.run(
+                [
+                    self.config.home_exp_dir / "musc_namelist.sh",
+                    "-l",
+                    str(self.config.experiment.fc_length),
+                    "-i",
+                    self.config.experiment.musc_id,
+                ],
+                cwd=self.config.home_exp_dir,
+                check=True,
+            )

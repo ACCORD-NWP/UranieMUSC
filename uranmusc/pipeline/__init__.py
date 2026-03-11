@@ -7,7 +7,7 @@ from uranmusc.pipeline.post import ConvertLFAToNetCDF
 from uranmusc.pipeline.pre import CloneRepos
 from uranmusc.pipeline.run import RunMusc, RunUranie
 from uranmusc.pipeline.setup_experiment import SetupExperiment
-from uranmusc.pipeline.setup_musc import SetupMusc
+from uranmusc.pipeline.setup_musc import SetupMusc, SetupMuscNamelists
 
 __all__ = [
     "BaseTask",
@@ -22,6 +22,7 @@ __all__ = [
     "RunUranie",
     "SetupExperiment",
     "SetupMusc",
+    "SetupMuscNamelists",
 ]
 
 
