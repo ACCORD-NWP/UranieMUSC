@@ -16,6 +16,9 @@ Classes
 
    UranieMUSC.uranmusc.config_parser.GeneralConfig
    UranieMUSC.uranmusc.config_parser.ExperimentConfig
+   UranieMUSC.uranmusc.config_parser.DataFilesConfig
+   UranieMUSC.uranmusc.config_parser.VariablesConfig
+   UranieMUSC.uranmusc.config_parser.DesignOfExperimentConfig
    UranieMUSC.uranmusc.config_parser.GitRepositoryConfig
    UranieMUSC.uranmusc.config_parser.GitRepositoriesConfig
    UranieMUSC.uranmusc.config_parser.Config
@@ -48,6 +51,12 @@ Module Contents
       :type:  pathlib.Path
 
 
+   .. py:attribute:: bin_dir
+      :type:  Optional[pathlib.Path]
+      :value: None
+
+
+
    .. py:attribute:: grp
       :type:  Optional[str]
       :value: None
@@ -78,12 +87,102 @@ Module Contents
       :type:  str
 
 
-   .. py:attribute:: ura_init
+   .. py:attribute:: design_of_experiment
+      :type:  DesignOfExperimentConfig
+
+
+.. py:class:: DataFilesConfig(/, **data: Any)
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   Configuration for data files used in a MUSC experiment.
+
+
+   .. py:attribute:: model_config
+
+      Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+
+
+   .. py:attribute:: dataserver
       :type:  pathlib.Path
 
 
-   .. py:attribute:: ura_init_namelist
-      :type:  pathlib.Path
+   .. py:attribute:: namelist_dir
+      :type:  Optional[pathlib.Path]
+      :value: None
+
+
+
+   .. py:attribute:: namelist_template
+      :type:  str
+
+
+.. py:class:: VariablesConfig(/, **data: Any)
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   Configuration for the input variables and their namelist flags.
+
+
+   .. py:attribute:: model_config
+
+      Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+
+
+   .. py:attribute:: inputs
+      :type:  List[str]
+
+
+   .. py:attribute:: namelist_flags
+      :type:  List[str]
+
+
+   .. py:method:: check_namelist_flags(value)
+
+      Check that all namelist flags start and end with '@'.
+
+      Args:
+          value (List[str]): List of namelist flags
+
+      Raises:
+          ValueError: If any namelist flag does not start and end with '@'
+
+      Returns:
+          List[str]: List of namelist flags
+
+
+
+.. py:class:: DesignOfExperimentConfig(/, **data: Any)
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   Design of experiment configuration.
+
+
+   .. py:attribute:: model_config
+
+      Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+
+
+   .. py:attribute:: type
+      :type:  Literal['morris_sensitivity', 'sampling']
+
+
+   .. py:attribute:: data_files
+      :type:  DataFilesConfig
+
+
+   .. py:attribute:: variables
+      :type:  VariablesConfig
+
+
+   .. py:method:: to_yaml(output_path: pathlib.Path, musc_id: str)
 
 
 .. py:class:: GitRepositoryConfig(/, **data: Any)
@@ -165,6 +264,21 @@ Module Contents
 
 
    .. py:property:: output_dir
+      :type: pathlib.Path
+
+
+
+   .. py:property:: project_dir
+      :type: pathlib.Path
+
+
+
+   .. py:property:: namelist_atm
+      :type: pathlib.Path
+
+
+
+   .. py:property:: namelist_sfx
       :type: pathlib.Path
 
 

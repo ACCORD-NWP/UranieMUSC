@@ -160,8 +160,7 @@ def run_doe(doe_config: Path, output_dir: Path, namelist_dir=None):
     Args:
         doe_config: Path to YAML file with DOE configuration
         output_dir: Directory to export the dataserver
-        namelist_dir: Directory containing the namelist template (optional,
-            inferred from config if not provided)
+        namelist_dir: Directory containing the namelist template (optional, inferred from config if not provided)
     """
 
     # Load from YAML file for backward compatibility

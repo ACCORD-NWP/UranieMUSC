@@ -37,6 +37,8 @@ class ExperimentConfig(BaseModel):
 
 
 class DataFilesConfig(BaseModel):
+    """Configuration for data files used in a MUSC experiment."""
+
     # Any extra fields are allowed to support custom options for the data files.
     model_config = ConfigDict(extra="allow")
 
@@ -52,6 +54,8 @@ class DataFilesConfig(BaseModel):
 
 
 class VariablesConfig(BaseModel):
+    """Configuration for the input variables and their namelist flags."""
+
     # Any extra fields are allowed to support custom options for the variables
     # (e.g. minima/maxima, etc.)
     model_config = ConfigDict(extra="allow")
