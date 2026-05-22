@@ -66,11 +66,11 @@ Shows the dependency graph of all registered tasks. Each node is coloured by sta
 
 | Colour | Meaning |
 |---|---|
-| Grey | Pending — waiting for dependencies |
-| Yellow | Running |
-| Green | Complete (outputs exist) |
 | Red | Failed |
-| Blue | Disabled / skipped |
+| Blue | Running |
+| Yellow | Pending |
+| Green | Done |
+| Grey | Disabled |
 
 Click on a task node to see its parameters, start time, and worker assignment.
 

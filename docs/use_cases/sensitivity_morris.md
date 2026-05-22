@@ -23,45 +23,40 @@ The Morris method is designed to be **cheap**: it requires only `trajectories ×
 
 ## How UranieMUSC implements it
 
-The Morris analysis is driven by two files:
-
-- **`uranmusc/doe_sensitivity.py`** — the URANIE Python script that sets up and runs the Morris DOE.
-- **`nam/doe_musc_sensitivity.yml`** — the configuration file that tells the script which parameters to perturb and over what ranges.
-
-These are selected in `config.yml`:
+The Morris analysis is configured entirely within `config.yml` under the `experiment.design_of_experiment` block. Set `type: morris_sensitivity` and supply the Morris-specific fields (`trajectories` and `levels`):
 
 ```yaml
 experiment:
-  ura_init: uranmusc/doe_sensitivity.py
-  ura_init_namelist: nam/doe_musc_sensitivity.yml
-```
-
----
-
-## The `doe_musc_sensitivity.yml` file
-
-```yaml
-data_files:
-    dataserver: init_doe.dat
-    namelist_template: namelist_atm_DEF
-
-variables:
-    inputs: ["VSIGQSAT"]
-    minima: [0.01]
-    maxima: [0.5]
-    namelist_flags: ["@VSIGQSAT@"]
-
-doe:
+  name: Test5
+  fc_length: 6
+  musc_id: DEF
+  musc_case: REFL65
+  design_of_experiment:
+    type: morris_sensitivity
+    data_files:
+      dataserver: init_doe.dat
+      namelist_template: namelist
+    variables:
+      inputs: ["VSIGQSAT"]
+      minima: [0.01]
+      maxima: [0.5]
+      namelist_flags: ["@VSIGQSAT@"]
     trajectories: 5
     levels: 20
 ```
+
+`RunUranie` reads this block, patches the namelist, and calls `design_of_experiment.py` with the Morris strategy.
+
+---
+
+## Configuration fields
 
 ### `data_files`
 
 | Field | Description |
 |---|---|
 | `dataserver` | Filename of the URANIE output dataserver. Saved to `<uranie_dir>/init_doe.dat`. |
-| `namelist_template` | Name of the namelist file to be patched with `@VAR@` tokens. Must match `<musc_id>` in `config.yml`. |
+| `namelist_template` | Base name for the namelist. The pipeline appends `_atm_<musc_id>` to form the actual filename (e.g., `namelist_atm_DEF`). |
 
 ### `variables`
 
@@ -72,7 +67,7 @@ doe:
 | `maxima` | Upper bound for each parameter (same order as `inputs`). |
 | `namelist_flags` | URANIE token string for each parameter. By convention `@VARNAME@`. Must match what `RunUranie` substitutes into the namelist. |
 
-### `doe`
+### `doe` (Morris-specific)
 
 | Field | Description |
 |---|---|
@@ -94,12 +89,12 @@ Each row corresponds to one `UranieLauncher_N` directory, and therefore one MUSC
 
 ## Adjusting the sampling
 
-To change the number of trajectories or the parameter range, edit `doe_musc_sensitivity.yml` and re-run from `RunUranie`:
+To change the number of trajectories or the parameter range, edit the `design_of_experiment` block in `config.yml` and re-run from `RunUranie`:
 
 ```shell
-uv run uranmusc RunUranie --rerun --local-scheduler
+uv run uranmusc RunUranie --rerun-task --local-scheduler
 ```
 
-This regenerates all perturbed namelists without re-running the expensive Harmonie build. `RunMusc` and `ConvertLFAToNetCDF` will then re-run automatically because their upstream inputs changed.
+This regenerates all perturbed namelists without re-running the expensive Harmonie build.
 
 To add more parameters to the sensitivity analysis, see {doc}`add_parameter`.

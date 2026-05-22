@@ -21,8 +21,18 @@ experiment:
   fc_length: 6          # forecast length in hours
   musc_id: DEF
   musc_case: REFL65     # test case from musc_data
-  ura_init: uranmusc/doe_sensitivity.py
-  ura_init_namelist: nam/doe_musc_sensitivity.yml
+  design_of_experiment:
+    type: morris_sensitivity
+    data_files:
+      dataserver: init_doe.dat
+      namelist_template: namelist
+    variables:
+      inputs: ["VSIGQSAT"]
+      minima: [0.01]
+      maxima: [0.5]
+      namelist_flags: ["@VSIGQSAT@"]
+    trajectories: 5
+    levels: 20
 
 git_repos:
   harmonie:
@@ -41,11 +51,13 @@ git_repos:
 
 See the {doc}`../configuration` page for a full explanation of every field.
 
+To use a config file in a different location, pass `--config /path/to/config.yml` to any task command.
+
 ---
 
-## Step 2: (Optional) Configure what to perturb
+## Step 2: (Optional) Adjust what to perturb
 
-The default `nam/doe_musc_sensitivity.yml` runs a Morris sensitivity analysis on a single parameter (`VSIGQSAT`). If this is your first run, leave it as-is. You can add more parameters later — see {doc}`add_parameter`.
+The default `design_of_experiment` block above runs a Morris sensitivity analysis on a single parameter (`VSIGQSAT`). If this is your first run, leave it as-is. You can add more parameters later — see {doc}`add_parameter`.
 
 ---
 
@@ -75,7 +87,7 @@ uv run uranmusc Run --scheduler-port 8082
 
 ### `CloneRepos`
 
-Luigi clones the three repositories into the paths specified in `git_repos`. This takes a few seconds for small repos, longer if `harmonie` is large.
+Luigi clones the three repositories into the paths specified in `git_repos`. This takes some time since `harmonie` is large.
 
 ```
 <harmonie.repo>/.git   ← created
@@ -95,7 +107,7 @@ Luigi initialises the Harmonie experiment directory:
 
 Luigi submits the Harmonie CMake build job to ecFlow and waits for it to complete. **This step takes 30–60 minutes.** The terminal will show periodic log messages while it polls the ecFlow scheduler.
 
-When the build finishes:
+When the step finishes:
 
 ```
 <hm_home>/MyFirstRun/experiment_is_locked   ← created
@@ -103,14 +115,23 @@ When the build finishes:
 
 ### `SetupMusc`
 
-Luigi runs the MUSC setup scripts, generating the base namelist and run scripts:
+Luigi runs the MUSC setup scripts, generating the run scripts:
 
 ```
 <hm_home>/MyFirstRun/musc_run.sh
 <hm_home>/MyFirstRun/musc_convert_netcdf.sh
 <hm_home>/MyFirstRun/variable_list.csv
-<hm_home>/MyFirstRun/namelist_atm_DEF
 ```
+
+### `SetupMuscNamelists`
+
+Luigi generates the base MUSC namelist for the configured forecast length:
+
+```
+<hm_home>/MyFirstRun/namelist_atm_DEF   ← created
+```
+
+If `design_of_experiment.data_files.namelist_dir` is set, the namelist is copied from that directory instead.
 
 ### `RunUranie`
 
@@ -175,13 +196,13 @@ The URANIE dataserver file (`URANIE/init_doe.dat`) records the exact parameter v
 ## Troubleshooting
 
 **The build step fails / ecFlow shows `aborted`**
-Check the Harmonie build log in `<hm_home>/MyFirstRun/`. Common causes are missing modules or network issues during the CMake download step.
+Check the Harmonie build log in `<hm_home>/MyFirstRun/`. 
 
 **`RunUranie` fails with an import error**
 The URANIE environment script (`ura_env`) could not be sourced, or the ROOT Python bindings are not available. Verify the `ura_env` path and that the URANIE installation is functional on your system.
 
 **`RunMusc` fails with a SLURM error**
-Check the SLURM output file (written to `<scratch>/MyFirstRun/` with a name like `slurm-<jobid>.out`). Common causes are memory limits or missing data in `musc_data_dir`.
+Check the SLURM output file (written to `<scratch>/MyFirstRun/` with a name like `slurm-<jobid>.out`). Common causes are memory limits.
 
 **A task is skipped unexpectedly**
-Its output files already exist. Use `--rerun` to force it to re-run — see {doc}`../pipeline/rerun`.
+Its output files already exist. Use `--rerun-task` to force it to re-run — see {doc}`../pipeline/rerun`.

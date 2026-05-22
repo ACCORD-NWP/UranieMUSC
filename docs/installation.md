@@ -1,6 +1,6 @@
 # Installation
 
-UranieMUSC is designed to run on the **ECMWF ATOS** HPC system. The steps below give a concise summary; the [full instructions including system requirements](https://github.com/ACCORD-NWP/UranieMUSC#installation) are maintained in the repository README.
+This installation guide of UranieMUSC is targeted the **ECMWF ATOS** HPC system. Please make sure to meet the below pre-requisites before installing.
 
 ## Prerequisites
 
@@ -40,7 +40,7 @@ uv sync --all-extras
 
 The `--system-site-packages` flag makes the system Python packages (including the ECMWF toolbox libraries) available inside the virtual environment.
 
-**4. Install pre-commit hooks** (optional, recommended for contributors)
+**4. Install pre-commit hooks** (required, for contributors only)
 
 ```shell
 uv run pre-commit install
@@ -54,14 +54,13 @@ After a successful install you should be able to run:
 uv run uranmusc --help
 ```
 
-and see the list of available tasks printed to the terminal.
+and see the list of available commandline arguments printed to the terminal.
 
 ## Building the documentation
 
-With the dev dependencies installed (`uv sync --all-extras`), build these docs locally with:
+With the dev dependencies installed (`uv sync --all-extras`), execute the command
 
 ```shell
 uv run jupyter-book build docs/
 ```
-
-The rendered HTML will appear in `docs/_build/html/`.
+to build the documentation.

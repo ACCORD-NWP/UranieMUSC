@@ -34,7 +34,7 @@ The full workflow is:
 ## Quick start
 
 1. Follow the {doc}`installation` instructions.
-2. Edit `config.yml` — the {doc}`configuration` page explains every field.
+2. Edit `config.yml` — the {doc}`configuration` page explains every field. To use a different config file, pass `--config /path/to/config.yml` to any task command.
 3. Run the full pipeline:
 
 ```shell

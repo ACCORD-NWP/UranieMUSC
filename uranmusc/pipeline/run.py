@@ -19,6 +19,7 @@ logger = logging.getLogger("luigi-interface")
 
 
 class RunUranie(RerunBaseTask):
+
     bin_dir = luigi.Parameter(default=None)
 
     def requires(self):

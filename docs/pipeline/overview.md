@@ -1,6 +1,6 @@
 # Pipeline Overview
 
-UranieMUSC uses a **task pipeline** to coordinate all the steps needed to go from a fresh repository checkout to a set of NetCDF output files. This page explains what a pipeline is and how UranieMUSC's pipeline works — no prior knowledge assumed.
+UranieMUSC uses a **task pipeline** to coordinate all the steps needed to go from a fresh repository checkout to a set of NetCDF output files. This page explains what a pipeline is and how UranieMUSC's pipeline works.
 
 ---
 
@@ -18,7 +18,7 @@ In UranieMUSC the pipeline is managed by a Python library called [Luigi](https:/
 
 Each step in the pipeline is called a **task**. A task is a self-contained unit of work with a well-defined purpose: cloning a repository, building the Harmonie model, running MUSC, and so on.
 
-UranieMUSC has nine tasks in total. They are described in detail on the {doc}`tasks` page.
+The tasks of the UranieMUSC package are described in detail on the {doc}`tasks` page.
 
 ### Targets (outputs)
 
@@ -26,7 +26,7 @@ Every task produces one or more **outputs** — files or directories that it wri
 
 - `CloneRepos` produces three `.git` directories (one per cloned repository).
 - `SetupMusc` produces `musc_run.sh`, `variable_list.csv`, and the namelist file.
-- `RunMusc` produces one `Out.000.0000.lfa` binary file per MUSC run.
+- `RunMusc` produces `*.lfa` files like `Out.000.0000.lfa`.
 
 ### Dependencies
 
@@ -44,7 +44,7 @@ Before running a task, Luigi checks whether its outputs already exist on disk. I
 
 This makes the pipeline **resumable**: if a step fails halfway through (e.g., a SLURM job times out), you can fix the problem and re-run the same command. Luigi will pick up from where it left off, skipping everything that already succeeded.
 
-If you want to force a task to re-run even though its outputs exist, use the `--rerun` or `--rerun-all` flags — see {doc}`rerun`.
+If you want to force a task to re-run even though its outputs exist, use the `--rerun-task` or `--rerun-all` flags — see {doc}`rerun`.
 
 ---
 
@@ -91,9 +91,9 @@ As the pipeline progresses, files accumulate in these directories. The {doc}`tas
 
 | Concept | Plain-language meaning |
 |---|---|
-| Task | One step of the pipeline (e.g., "run MUSC") |
+| Task | One step of the pipeline (e.g., "RunMusc") |
 | Target | The file(s) a task writes to disk |
 | Dependency | A task that must be complete before another task can start |
 | Complete | A task whose output files already exist — Luigi will skip it |
 | `--local-scheduler` | Run without a central Luigi server |
-| `--rerun` | Force a specific task to run again |
+| `--rerun-task` | Force a specific task to run again |
