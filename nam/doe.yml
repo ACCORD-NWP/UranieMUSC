@@ -1,0 +1,12 @@
+---
+data_files:
+    dataserver: init_doe.dat
+    namelist_template: harmonie_namelists.pm
+variables:
+    inputs: ["SPP"]
+    minima: [100000]
+    maxima: [300000]
+    namelist_flags: ["@SPP@"]
+doe:
+    sample_size: URA_TRAIN
+    distribution: "lhs" 

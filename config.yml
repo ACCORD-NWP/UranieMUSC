@@ -1,0 +1,26 @@
+general:
+  ura_env: /hpcperm/cu0k/URANIE/uranie.env
+  musc_data_dir: /hpcperm/dnk3604/musc/HarmonieMuscData/musc_ref
+  hm_home: /home/dnk3604/hm_home
+  scratch_hm_home: /scratch/dnk3604/hm_home
+  grp: accord
+experiment:
+  name: Test5
+  fc_length: 6
+  musc_id: DEF
+  musc_case: REFL65
+  ura_init: uranmusc/doe_sensitivity.py
+  ura_init_namelist: nam/doe_musc_sensitivity.yml
+git_repos:
+  harmonie:
+    repo: /hpcperm/dnk3604/harmonie_releases/musc_dev-CY49T2h/
+    url: git@github.com:Hirlam/HarmonieCSC.git
+    branch: dev-CY49T2h
+  ddhtoolbox:
+    repo: /hpcperm/dnk3604/ddhtoolbox/
+    url: git@github.com:UMR-CNRM/ddhtoolbox.git
+    branch: master
+  musc_data:
+    repo: /hpcperm/dnk3604/musc/HarmonieMuscData
+    url: git@github.com:Hirlam/HarmonieMuscData.git
+    branch: master

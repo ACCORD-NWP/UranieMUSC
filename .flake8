@@ -1,0 +1,7 @@
+[flake8]
+exclude = .git,__pycache__
+max-complexity = 12
+format = "colored"
+max-line-length = 90
+show_source = true
+style = "google"
