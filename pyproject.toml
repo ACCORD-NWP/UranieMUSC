@@ -25,6 +25,8 @@
     "pydoclint>0.3.8",
     "setuptools>=80.9.0",    # needed by isort
     "ipdb",
+    "jupyter-book>=0.15.0,<2.0.0",
+    "sphinx-autoapi>=3.0.0",
   ]
 
 [build-system]

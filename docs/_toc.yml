@@ -1,0 +1,33 @@
+format: jb-book
+root: index
+
+parts:
+  - caption: Getting Started
+    chapters:
+      - file: installation
+      - file: configuration
+
+  - caption: The Pipeline
+    chapters:
+      - file: pipeline/overview
+      - file: pipeline/tasks
+      - file: pipeline/rerun
+
+  - caption: Use Cases
+    chapters:
+      - file: use_cases/index
+        sections:
+          - file: use_cases/full_run
+          - file: use_cases/sensitivity_morris
+          - file: use_cases/lhs_sampling
+          - file: use_cases/add_parameter
+
+  - caption: Monitoring
+    chapters:
+      - file: monitoring
+
+  - caption: Reference
+    chapters:
+      - file: reference/config_schema
+      - file: reference/namelist_yml
+      - file: reference/api/index

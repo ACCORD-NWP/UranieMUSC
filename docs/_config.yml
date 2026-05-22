@@ -1,0 +1,40 @@
+title: UranieMUSC Documentation
+author: ACCORD-NWP
+logo: luigi_pipeline.png
+
+execute:
+  execute_notebooks: "off"
+
+parse:
+  myst_enable_extensions:
+    - colon_fence
+    - deflist
+    - substitution
+
+html:
+  use_repository_button: true
+  use_issues_button: true
+
+repository:
+  url: https://github.com/ACCORD-NWP/UranieMUSC
+  branch: main
+  path_to_book: docs
+
+sphinx:
+  extra_extensions:
+    - autoapi.extension
+  config:
+    autoapi_dirs:
+      - ../uranmusc
+    autoapi_options:
+      - members
+      - undoc-members
+      - show-inheritance
+      - show-module-summary
+    autoapi_root: reference/api
+    autoapi_keep_files: true
+    suppress_warnings:
+      - "autoapi.python_import_resolution"
+      - "ref.ref"
+      - "etoc.toctree"
+      - "orphan"
