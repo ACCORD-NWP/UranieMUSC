@@ -48,24 +48,26 @@ that apply to the given task. The available tasks are
 - **CloneRepos** : Clone git repositories specified in the config at `git_repos.<repo>`.
 - **SetupExperiment** : Set up a Harmonie experiment using the cloned Harmonie repository.
 - **BuildExperiment** : Build Harmonie
+- **BuildDDH** : Build DDH toolbox
 - **SetupMusc** : Set up MUSC using the built Harmonie code and generate namelists.
 - **RunUranie** : Run URANIE to generate "perturbed" namelists.
 - **RunMusc** : Run MUSC on the generated namelists.
 - **ConvertLFAToNetCDF** : Convert the output .lfa files to netCDF.
-- **WrapUp** : Wrap up the experiment by adjusting group permissions among other things.
 
 The tasks are organized in a pipeline that controls the dependencies between the tasks.
 
 ![pipeline](docs/luigi_pipeline.png)
 
-Luigi automatically checks if task dependencies are complete before running a task. If it discovers incomplete task dependencies, it will run them before running the requested task. All completed tasks will not rerun unless explicitly requested using either the `--rerun` (single task) or `--rerun-all` flag.
+Luigi automatically checks if task dependencies are complete before running a task. If it discovers incomplete task dependencies, it will run them before running the requested task. All completed tasks will not rerun unless explicitly requested using either the `--rerun-task` (single task) or `--rerun-all` flag.
 
 As an example, to run the `RunMusc` task, you would run
 ```shell
-uv run uranmusc RunMusc [--scheduler-port 8082|--local-scheduler]
+uv run uranmusc RunMusc [--scheduler-port 8082|--local-scheduler] [--config /path/to/config.yml]
 ```
 
 The `--scheduler-port` flag is used to specify the port on which the Luigi server is running (see [Start Luigi server and port-forward](#start-luigi-server-and-port-forward]). The `--local-scheduler` flag is used to run the Luigi server locally. Use the latter option, if you don't want to see the status of the pipeline in the Luigi server GUI.
+
+With the `--config` flag, you can specify the path to a custom config file. The default config file is `config.yml`.
 
 ## Start Luigi server and port-forward
 

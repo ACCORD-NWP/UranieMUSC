@@ -9,4 +9,4 @@ variables:
     namelist_flags: ["@VSIGQSAT@"]
 doe:
     trajectories: 5
-    levels: 20 
+    levels: 20

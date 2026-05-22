@@ -3,9 +3,16 @@
 import os
 import shutil
 from pathlib import Path
-from typing import Optional
+from typing import Any, List, Literal, Optional
 
-from pydantic import BaseModel, computed_field, model_validator
+import yaml
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    computed_field,
+    field_validator,
+    model_validator,
+)
 
 
 class GeneralConfig(BaseModel):
@@ -15,6 +22,7 @@ class GeneralConfig(BaseModel):
     musc_data_dir: Path
     hm_home: Path
     scratch_hm_home: Path
+    bin_dir: Optional[Path] = None
     grp: Optional[str] = None
 
 
@@ -25,8 +33,77 @@ class ExperimentConfig(BaseModel):
     fc_length: int
     musc_id: str
     musc_case: str
-    ura_init: Path
-    ura_init_namelist: Path
+    design_of_experiment: "DesignOfExperimentConfig"
+
+
+class DataFilesConfig(BaseModel):
+    # Any extra fields are allowed to support custom options for the data files.
+    model_config = ConfigDict(extra="allow")
+
+    dataserver: Path
+    namelist_dir: Optional[Path] = None
+    namelist_template: str
+
+    def __getitem__(self, key: str) -> Any:
+        """Method to access both defined and extra fields."""
+        if key in self.__class__.model_fields:
+            return getattr(self, key)
+        return self.__pydantic_extra__.get(key)
+
+
+class VariablesConfig(BaseModel):
+    # Any extra fields are allowed to support custom options for the variables
+    # (e.g. minima/maxima, etc.)
+    model_config = ConfigDict(extra="allow")
+
+    inputs: List[str]
+    namelist_flags: List[str]
+
+    @field_validator("namelist_flags", mode="after")
+    def check_namelist_flags(cls, value):
+        """Check that all namelist flags start and end with '@'.
+
+        Args:
+            value (List[str]): List of namelist flags
+
+        Raises:
+            ValueError: If any namelist flag does not start and end with '@'
+
+        Returns:
+            List[str]: List of namelist flags
+        """
+        for flag in value:
+            flag = flag.strip()
+            if flag[0] != "@" and flag[-1] != "@":
+                raise ValueError("All namelist flags must start and end with '@'")
+        return value
+
+
+class DesignOfExperimentConfig(BaseModel):
+    """Design of experiment configuration."""
+
+    # Any extra fields are allowed to support custom options for the design
+    # of experiment (e.g. trajectories, levels, etc.)
+    model_config = ConfigDict(extra="allow")
+
+    type: Literal["morris_sensitivity", "sampling"]
+    data_files: DataFilesConfig
+    variables: VariablesConfig
+
+    def __getitem__(self, key: str) -> Any:
+        """Method to access both defined and extra fields."""
+        if key in self.__class__.model_fields:
+            return getattr(self, key)
+        return self.__pydantic_extra__.get(key)
+
+    def to_yaml(self, output_path: Path, musc_id: str):
+        model_dict = self.model_dump(mode="json", exclude_none=True)
+        # Append musc_id to namelist_template before saving
+        model_dict["data_files"]["namelist_template"] = "_".join(
+            [model_dict["data_files"]["namelist_template"], "atm", musc_id]
+        )
+        with open(output_path, "w", encoding="utf-8") as file_:
+            yaml.dump(model_dict, file_)
 
 
 class GitRepositoryConfig(BaseModel):
@@ -91,3 +168,34 @@ class Config(BaseModel):
     @property
     def output_dir(self) -> Path:
         return self.scratch_exp_dir / "OUTPUT"
+
+    @computed_field
+    @property
+    def project_dir(self) -> Path:
+        return Path(__file__).parents[1]
+
+    @computed_field
+    @property
+    def namelist_atm(self) -> Path:
+        doe = self.experiment.design_of_experiment
+        namelist_filename = "_".join(
+            [doe.data_files.namelist_template, "atm", self.experiment.musc_id]
+        )
+        if doe.data_files.namelist_dir is None:
+            # NOTE: The namelist files will be created in the SetupMuscNamelists
+            # task and placed in the home experiment directory
+            return self.home_exp_dir / namelist_filename
+        return doe.data_files.namelist_dir / self.experiment.musc_case / namelist_filename
+
+    @computed_field
+    @property
+    def namelist_sfx(self) -> Path:
+        doe = self.experiment.design_of_experiment
+        namelist_filename = "_".join(
+            [doe.data_files.namelist_template, "sfx", self.experiment.musc_id]
+        )
+        if doe.data_files.namelist_dir is None:
+            # NOTE: The namelist files will be created in the SetupMuscNamelists
+            # task and placed in the home experiment directory
+            return self.home_exp_dir / namelist_filename
+        return doe.data_files.namelist_dir / self.experiment.musc_case / namelist_filename
