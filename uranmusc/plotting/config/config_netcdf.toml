@@ -1,0 +1,284 @@
+[general]
+  basedir = "/scratch/dnk3604/hm_home/Test11"
+  savedir = "/home/dnk3604/hm_home/figures/plotmusc"
+
+[general.case]
+  caseName = "Test11"
+  muscID = "DEF"
+  muscCycle = "cy46"
+  outputInfo = "10s_h6"
+  outputDate = "251021"
+  uranTraj = 4
+  paraNum = 1
+
+[field.cc.keys]
+  shortName = "cc"
+  dimensions = ["time"]
+
+[field.cc.preprocess]
+  operator = "multiply"
+  offset = 100
+  units = "%"
+
+[field.cc.plot]
+  levels = [96, 100, 1]
+  colors = ["jet"]
+  cbar_name = "Total Cloud Cover"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.pclch.keys]
+  shortName = "pclch"
+  dimensions = ["time"]
+
+[field.pclch.preprocess]
+  operator = "multiply"
+  offset = 100
+  units = "%"
+
+[field.pclch.plot]
+  levels = [96, 100, 1]
+  #levels = [0, 100, 10]
+  colors = ["jet"]
+  cbar_name = "High-Level Cloud Cover"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.pclcm.keys]
+  shortName = "pclcm"
+  dimensions = ["time"]
+
+[field.pclcm.preprocess]
+  operator = "multiply"
+  offset = 100
+  units = "%"
+
+[field.pclcm.plot]
+  levels = [0, 100, 10]
+  colors = ["jet"]
+  cbar_name = "Medium-Level Cloud Cover"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.pclcl.keys]
+  shortName = "pclcl"
+  dimensions = ["time"]
+
+[field.pclcl.preprocess]
+  operator = "multiply"
+  offset = 100
+  units = "%"
+
+[field.pclcl.plot]
+  levels = [96, 100, 1]
+  colors = ["jet"]
+  cbar_name = "Low-Level Cloud Cover"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.q.keys]
+  shortName = "q"
+  dimensions = ["levels", "time"]
+
+[field.q.preprocess]
+  operator = "multiply"
+  offset = 1000
+  units = "g/kg"
+
+[field.q.plot]
+  levels = [0, 1, 0.1]
+  colors = ["jet"]
+  cbar_name = "Specific humidity"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.t.keys]
+  shortName = "t"
+  dimensions = ["levels", "time"]
+
+[field.t.preprocess]
+  operator = "add"
+  offset = -273.15
+  units = "˚C"
+
+[field.t.plot]
+  levels = [-60, 30, 1]
+  colors = ["jet"]
+  colors_diff = [
+    "#2cb32c",
+    "#52cc52",
+    "#7ee47e",
+    "#b2ffb1",
+    "#b3e1b2",
+    "#310f99",
+    "#4e2cb3",
+    "#6f52cc",
+    "#977de4",
+    "#c5b1ff",
+    "#0f5399",
+    "#2c6fb3",
+    "#528fcc",
+    "#7db1e4",
+    "#b1d9ff",
+    "#ffffb1",
+    "#f1e385",
+    "#e4c15c",
+    "#d99736",
+    "#cc6a13",
+    "#de7b58",
+    "#cc503c",
+    "#b92424",
+    "#a81124",
+    "#950028",
+    "#b852cc",
+    "#a133b8",
+    "#8b1aa2",
+    "#79098f",
+  ]
+  cbar_name = "Temperature"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.rh2m.keys]
+  shortName = "rh2m"
+  dimensions = ["time"]
+
+[field.rh2m.preprocess]
+  operator = ""
+  offset = ""
+  units = "%"
+
+[field.rh2m.plot]
+  levels = [0, 100, 10]
+  cbar_name = "2m relative humidity"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.pqi.keys]
+  shortName = "pqi"
+  dimensions = ["levels", "time"]
+
+[field.pqi.preprocess]
+  operator = "multiply"
+  offset = 1000
+  units = "g/kg"
+
+[field.pqi.plot]
+  levels = [0, 1, 0.1]
+  #levels = [0, 1e-04, 0.001, 0.005, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+  colors = ["Blues"]
+  cbar_name = "Model Level Ice Water"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.pql.keys]
+  shortName = "pql"
+  dimensions = ["levels", "time"]
+
+[field.pql.preprocess]
+  operator = "multiply"
+  offset = 1000
+  units = "g/kg"
+
+[field.pql.plot]
+  levels = [0, 1, 0.1]
+  colors = ["Reds"]
+  cbar_name = "Model Level Liquid Water"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.pqr.keys]
+  shortName = "pqr"
+  dimensions = ["levels", "time"]
+
+[field.pqr.preprocess]
+  operator = "multiply"
+  offset = 1000
+  units = "g/kg"
+
+[field.pqr.plot]
+  levels = [0, 1, 0.1]
+  colors = ["Greens"]
+  cbar_name = "Model Level Rain"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.pqg.keys]
+  shortName = "pqg"
+  dimensions = ["levels", "time"]
+
+[field.pqg.preprocess]
+  operator = "multiply"
+  offset = 1000
+  units = "g/kg"
+
+[field.pqg.plot]
+  levels = [0, 1, 0.1]
+  colors = ["Blues"]
+  cbar_name = "Model Level Graupel"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.pqsn.keys]
+  shortName = "pqsn"
+  dimensions = ["levels", "time"]
+
+[field.pqsn.preprocess]
+  operator = "multiply"
+  offset = 1000
+  units = "g/kg"
+
+[field.pqsn.plot]
+  levels = [0, 1, 0.1]
+  colors = ["Blues"]
+  cbar_name = "Model Level Snow"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.prec_sol.keys]
+  shortName = "prec_sol"
+  dimensions = ["levels", "time"]
+
+[field.prec_sol.preprocess]
+  operator = "multiply"
+  offset = 10000
+  units = "10e-4 mm"
+
+[field.prec_sol.plot]
+  levels = [0, 2, 0.5]
+  colors = ["jet"]
+  cbar_name = "Model Level Solid Precipitation"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.prec_liq.keys]
+  shortName = "prec_liq"
+  dimensions = ["levels", "time"]
+
+[field.prec_liq.preprocess]
+  operator = "multiply"
+  offset = 10000
+  units = "10e-4 mm"
+
+[field.prec_liq.plot]
+  levels = [0, 2, 0.5]
+  colors = ["jet"]
+  cbar_name = "Model Level Liquid Precipitation"
+  plot_type = "pcolormesh"
+  figure_dpi = 300
+
+[field.w.keys]
+  shortName = "w"
+  dimensions = ["levels", "time"]
+
+[field.w.preprocess]
+  operator = ""
+  offset = ""
+  units = "m/s"
+
+[field.w.plot]
+  levels = [0, 0.5, 0.05]
+  colors = ["jet"]
+  cbar_name = "Vertical Velocity"
+  plot_type = "pcolormesh"
+  figure_dpi = 300

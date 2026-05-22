@@ -3,17 +3,35 @@ general:
   musc_data_dir: /hpcperm/dnk3604/musc/HarmonieMuscData/musc_ref
   hm_home: /home/dnk3604/hm_home
   scratch_hm_home: /scratch/dnk3604/hm_home
+  # bin_dir: /scratch/dnk3604/hm_home/Test11/bin
   grp: accord
 experiment:
-  name: Test5
+  name: Test13
   fc_length: 6
-  musc_id: DEF
+  musc_id: REFL65
   musc_case: REFL65
-  ura_init: uranmusc/doe_sensitivity.py
-  ura_init_namelist: nam/doe_musc_sensitivity.yml
+  design_of_experiment:
+    type: sampling
+    trajectories: 5
+    levels: 20
+    sample_size: 5 # URA_TRAIN
+    distribution: "lhs"
+    data_files:
+      dataserver: init_doe.dat
+      # namelist_dir: /hpcperm/dnk3604/harmonie_releases/mfroelund_musc_dev-CY49T2h/util/musc/test/
+      namelist_template:  namelist
+    variables:
+      # inputs: ["VSIGQSAT"]
+      # minima: [0.01]
+      # maxima: [0.5]
+      # namelist_flags: ["@VSIGQSAT@"]
+      inputs: ["XLCOR"]
+      minima: [100000]
+      maxima: [300000]
+      namelist_flags: ["@XLCOR@"]
 git_repos:
   harmonie:
-    repo: /hpcperm/dnk3604/harmonie_releases/musc_dev-CY49T2h/
+    repo: /hpcperm/dnk3604/harmonie_releases/mfroelund_musc_dev-CY49T2h/
     url: git@github.com:Hirlam/HarmonieCSC.git
     branch: dev-CY49T2h
   ddhtoolbox:
