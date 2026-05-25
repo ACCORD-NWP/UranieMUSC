@@ -22,6 +22,7 @@ class SetupExperiment(RerunBaseTask):
     Attributes:
         config (PydanticModelParameter): The experiment configuration.
     """
+
     def requires(self):
         """Specifies the dependencies for this task.
 

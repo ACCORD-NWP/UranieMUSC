@@ -68,6 +68,3 @@ Module Contents
 
       Cleans the experiment directory by removing non-essential directories,
       and then runs the Harmonie setup command.
-
-
-

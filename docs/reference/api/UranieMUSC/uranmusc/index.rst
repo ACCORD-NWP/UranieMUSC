@@ -16,5 +16,3 @@ Submodules
    /reference/api/UranieMUSC/uranmusc/log/index
    /reference/api/UranieMUSC/uranmusc/pipeline/index
    /reference/api/UranieMUSC/uranmusc/plotting/index
-
-

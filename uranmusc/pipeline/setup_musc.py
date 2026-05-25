@@ -24,6 +24,7 @@ class SetupMusc(RerunBaseTask):
     Attributes:
         bin_dir (luigi.Parameter): Directory containing binaries.
     """
+
     bin_dir = luigi.Parameter(default=None)
 
     def requires(self):
@@ -77,6 +78,7 @@ class SetupMuscNamelists(RerunBaseTask):
     Attributes:
         bin_dir (luigi.Parameter): Directory containing binaries.
     """
+
     bin_dir = luigi.Parameter(default=None)
 
     def requires(self):

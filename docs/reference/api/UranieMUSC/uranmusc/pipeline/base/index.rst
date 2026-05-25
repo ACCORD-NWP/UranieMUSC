@@ -87,6 +87,3 @@ Module Contents
       If the task has any outputs, return ``True`` if all outputs exist.
       Otherwise, return ``False``. If --rerun-task or --rerun-all is True,
       return ``False``.
-
-
-

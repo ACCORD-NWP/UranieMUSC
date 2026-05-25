@@ -280,6 +280,3 @@ Module Contents
 
    .. py:property:: namelist_sfx
       :type: pathlib.Path
-
-
-

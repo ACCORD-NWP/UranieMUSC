@@ -24,7 +24,8 @@ class BuildExperiment(RerunBaseTask):
     """Luigi task to build the Harmonie experiment.
 
     Attributes:
-        bin_dir (luigi.Parameter): Directory containing binaries. If provided, the experiment is installed without rebuilding.
+        bin_dir (luigi.Parameter): Directory containing binaries. If provided,
+            the experiment is installed without rebuilding.
     """
 
     bin_dir = luigi.Parameter(default=None)

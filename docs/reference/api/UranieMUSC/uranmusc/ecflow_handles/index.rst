@@ -35,5 +35,3 @@ Module Contents
 .. py:function:: await_ecflow_node_to_complete(node_path: str, delay: int = 60) -> None
 
    Await an ecflow node to complete. If the node is aborted, raises an error.
-
-

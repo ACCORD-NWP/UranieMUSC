@@ -38,7 +38,7 @@ Module Contents
 
 
    Luigi task to clone necessary repositories.
-       
+
 
 
    .. py:method:: output()
@@ -56,6 +56,3 @@ Module Contents
 
       For each repository in the configuration, it removes any existing
       directory and then performs a git clone with submodules.
-
-
-

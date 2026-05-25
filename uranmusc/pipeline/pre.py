@@ -2,6 +2,7 @@
 
 This module contains Luigi tasks for cloning required repositories.
 """
+
 import logging
 import shutil
 import subprocess
@@ -17,13 +18,14 @@ logger = logging.getLogger("luigi-interface")
 
 
 class CloneRepos(RerunBaseTask):
-    """Luigi task to clone necessary repositories.
-    """
+    """Luigi task to clone necessary repositories."""
+
     def output(self):
         """Specifies the output targets for this task.
 
         Returns:
-            list: A list of luigi.LocalTarget objects for each repository's .git directory.
+            list: A list of luigi.LocalTarget objects for each repository's
+                .git directory.
         """
         return [
             luigi.LocalTarget(repo.repo / ".git") for _, repo in self.config.git_repos

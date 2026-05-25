@@ -20,7 +20,7 @@ Use `--rerun-task` to force a **single task** to re-execute, even if its outputs
 uv run uranmusc RunUranie --rerun-task --local-scheduler
 ```
 
-This re-runs only `RunUranie`. All upstream tasks (`CloneRepos`, `SetupExperiment`, etc.) are still skipped if their outputs exist. 
+This re-runs only `RunUranie`. All upstream tasks (`CloneRepos`, `SetupExperiment`, etc.) are still skipped if their outputs exist.
 
 **Typical use case:** You edited the `design_of_experiment` block in `config.yml` to change the parameter ranges and want to regenerate the perturbed namelists without rebuilding Harmonie.
 
@@ -58,6 +58,6 @@ The same logic applies to `ConvertLFAToNetCDF`.
 
 | Scenario | Command |
 |---|---|
-| Re-run a single task | `uv run uranmusc <TaskName> --rerun-task --local-scheduler` 
+| Re-run a single task | `uv run uranmusc <TaskName> --rerun-task --local-scheduler`
 | Re-run everything from scratch | `uv run uranmusc Run --rerun-all --local-scheduler` |
 | Resume after a partial MUSC failure | Re-run `RunMusc` without any flags — partial restart is automatic |

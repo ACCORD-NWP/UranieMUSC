@@ -111,6 +111,3 @@ Module Contents
       Executes the MUSC namelist setup.
 
       Either copies existing namelists or generates them via a shell script.
-
-
-

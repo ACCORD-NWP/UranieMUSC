@@ -118,6 +118,3 @@ Module Contents
 
       Prepares MUSC namelists by copying and symlinking files, generates a
       Slurm batch script, and submits it using `sbatch`.
-
-
-

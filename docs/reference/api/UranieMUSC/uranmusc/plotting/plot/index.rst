@@ -87,5 +87,3 @@ Module Contents
 
 
    .. py:method:: plot_time_series(times)
-
-

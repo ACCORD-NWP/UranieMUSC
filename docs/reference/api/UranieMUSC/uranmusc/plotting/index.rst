@@ -15,5 +15,3 @@ Submodules
    /reference/api/UranieMUSC/uranmusc/plotting/dataset/index
    /reference/api/UranieMUSC/uranmusc/plotting/plot/index
    /reference/api/UranieMUSC/uranmusc/plotting/util/index
-
-

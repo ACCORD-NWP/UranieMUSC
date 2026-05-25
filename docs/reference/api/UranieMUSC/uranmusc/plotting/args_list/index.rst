@@ -18,5 +18,3 @@ Module Contents
 .. py:function:: get_args()
 
    Parse command-line arguments and return them
-
-

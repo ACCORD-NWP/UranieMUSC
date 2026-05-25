@@ -76,6 +76,3 @@ Module Contents
 
       Prepares the conversion environment by copying configuration files,
       generates a Slurm batch script, and submits it via `sbatch`.
-
-
-

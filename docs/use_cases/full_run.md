@@ -196,7 +196,7 @@ The URANIE dataserver file (`URANIE/init_doe.dat`) records the exact parameter v
 ## Troubleshooting
 
 **The build step fails / ecFlow shows `aborted`**
-Check the Harmonie build log in `<hm_home>/MyFirstRun/`. 
+Check the Harmonie build log in `<hm_home>/MyFirstRun/`.
 
 **`RunUranie` fails with an import error**
 The URANIE environment script (`ura_env`) could not be sourced, or the ROOT Python bindings are not available. Verify the `ura_env` path and that the URANIE installation is functional on your system.

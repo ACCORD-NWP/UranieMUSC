@@ -62,5 +62,3 @@ Module Contents
 
 
    .. py:method:: read_init_doe()
-
-

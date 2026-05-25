@@ -66,4 +66,3 @@ Module Contents
 
 
 .. py:function:: setup_luigi_log_interception(loglevel=logging.INFO)
-

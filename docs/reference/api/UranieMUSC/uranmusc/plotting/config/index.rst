@@ -46,6 +46,3 @@ Module Contents
    .. py:method:: get_field_config(sub_path: Optional[str] = None) -> dict
 
       Return config information for field
-
-
-

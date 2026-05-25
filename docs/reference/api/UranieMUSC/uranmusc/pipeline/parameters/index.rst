@@ -86,6 +86,3 @@ Module Contents
       Converts the value ``x`` to a string.
 
       :param x: the value to serialize.
-
-
-
