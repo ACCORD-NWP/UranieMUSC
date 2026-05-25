@@ -1,3 +1,9 @@
+"""Module for running URANIE and MUSC simulations.
+
+This module contains Luigi tasks for executing the URANIE design of
+experiment and the subsequent MUSC simulation runs.
+"""
+
 import logging
 import os
 import re
@@ -19,10 +25,20 @@ logger = logging.getLogger("luigi-interface")
 
 
 class RunUranie(RerunBaseTask):
+    """Luigi task to run the URANIE design of experiment.
+
+    Attributes:
+        bin_dir (luigi.Parameter): Directory containing binaries.
+    """
 
     bin_dir = luigi.Parameter(default=None)
 
     def requires(self):
+        """Specifies the dependencies for this task.
+
+        Returns:
+            list: A list of tasks that must be completed before this task.
+        """
         return [
             CloneRepos(rerun_all=self.rerun_all, config=self.config),
             SetupExperiment(rerun_all=self.rerun_all, config=self.config),
@@ -34,6 +50,11 @@ class RunUranie(RerunBaseTask):
         ]
 
     def output(self):
+        """Specifies the output targets for this task.
+
+        Returns:
+            list: A list of luigi.LocalTarget objects representing the output files.
+        """
         doe = self.config.experiment.design_of_experiment
         return [
             luigi.LocalTarget(self.config.uranie_dir / doe.data_files.dataserver),
@@ -43,6 +64,11 @@ class RunUranie(RerunBaseTask):
         ]
 
     def run(self):
+        """Executes the URANIE design of experiment.
+
+        Prepares the URANIE namelist by injecting DOE variables and then
+        runs the URANIE python script via subprocess.
+        """
         logger.info("Preparing URANIE namelist")
         doe = self.config.experiment.design_of_experiment
         # Dump DOE config to temporary file
@@ -79,10 +105,22 @@ class RunUranie(RerunBaseTask):
 
 
 class RunMusc(RerunBaseTask):
+    """Luigi task to run the MUSC simulation.
+
+    Attributes:
+        bin_dir (luigi.Parameter): Directory containing binaries.
+        ntasks (luigi.IntParameter): Number of tasks to run in parallel via Slurm.
+    """
+
     bin_dir = luigi.Parameter(default=None)
     ntasks = luigi.IntParameter(default=1)
 
     def requires(self):
+        """Specifies the dependencies for this task.
+
+        Returns:
+            list: A list of tasks that must be completed before this task.
+        """
         return [
             CloneRepos(rerun_all=self.rerun_all, config=self.config),
             SetupExperiment(rerun_all=self.rerun_all, config=self.config),
@@ -94,6 +132,12 @@ class RunMusc(RerunBaseTask):
         ]
 
     def output(self):
+        """Specifies the output targets for this task.
+
+        Returns:
+            list: A list of luigi.LocalTarget objects representing the first
+                LFA file of each expected output directory.
+        """
         # Define the expected lfa files based on the number of output dirs
         uranie_output_dirs = list(self.config.uranie_dir.glob("UranieLauncher_*"))
         run_numbers = [int(dir_.name.split("_")[1]) for dir_ in uranie_output_dirs]
@@ -111,6 +155,11 @@ class RunMusc(RerunBaseTask):
         return [luigi.LocalTarget(output_file) for output_file in first_output_files]
 
     def run(self):
+        """Executes the MUSC simulation.
+
+        Prepares MUSC namelists by copying and symlinking files, generates a
+        Slurm batch script, and submits it using `sbatch`.
+        """
         # Get missing output folders and their indices
         output_dirs = [Path(output_file.path).parent for output_file in self.output()]
         output_indices = [int(dir_.name.split("_")[2]) for dir_ in output_dirs]

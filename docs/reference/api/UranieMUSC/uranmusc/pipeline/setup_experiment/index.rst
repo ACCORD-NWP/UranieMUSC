@@ -3,6 +3,14 @@ UranieMUSC.uranmusc.pipeline.setup_experiment
 
 .. py:module:: UranieMUSC.uranmusc.pipeline.setup_experiment
 
+.. autoapi-nested-parse::
+
+   Module for setting up the experiment environment.
+
+   This module contains Luigi tasks for cleaning and configuring
+   the experiment directory.
+
+
 
 Attributes
 ----------
@@ -30,47 +38,36 @@ Module Contents
    Bases: :py:obj:`uranmusc.pipeline.base.RerunBaseTask`
 
 
-   A base class for all tasks that should be rerunnable.
+   Luigi task to set up the experiment environment.
+
+   Attributes:
+       config (PydanticModelParameter): The experiment configuration.
 
 
    .. py:method:: requires()
 
-      The Tasks that this Task depends on.
+      Specifies the dependencies for this task.
 
-      A Task will only run if all of the Tasks that it requires are completed.
-      If your Task does not require any other Tasks, then you don't need to
-      override this method. Otherwise, a subclass can override this method
-      to return a single Task, a list of Task instances, or a dict whose
-      values are Task instances.
-
-      See :ref:`Task.requires`
+      Returns:
+          list: A list of tasks that must be completed before this task.
 
 
 
    .. py:method:: output()
 
-      The output that this Task produces.
+      Specifies the output target for this task.
 
-      The output of the Task determines if the Task needs to be run--the task
-      is considered finished iff the outputs all exist. Subclasses should
-      override this method to return a single :py:class:`Target` or a list of
-      :py:class:`Target` instances.
-
-      Implementation note
-        If running multiple workers, the output must be a resource that is accessible
-        by all workers, such as a DFS or database. Otherwise, workers might compute
-        the same output since they don't see the work done by other workers.
-
-      See :ref:`Task.output`
+      Returns:
+          luigi.LocalTarget: A target file indicating the experiment is set up.
 
 
 
    .. py:method:: run()
 
-      Dummy task to be overriden.
+      Executes the experiment setup.
 
-      Serves solely the purpose of making the type checker understand the
-      correct type of self.config for all tasks that inherit from BaseTask
+      Cleans the experiment directory by removing non-essential directories,
+      and then runs the Harmonie setup command.
 
 
 

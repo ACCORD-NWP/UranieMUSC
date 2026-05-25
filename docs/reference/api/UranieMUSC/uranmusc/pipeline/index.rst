@@ -3,6 +3,14 @@ UranieMUSC.uranmusc.pipeline
 
 .. py:module:: UranieMUSC.uranmusc.pipeline
 
+.. autoapi-nested-parse::
+
+   Module providing a high-level interface for the uranmusc pipeline.
+
+   This module exports key Luigi tasks and parameters used to orchestrate
+   the full simulation workflow, from cloning repositories to post-processing.
+
+
 
 Submodules
 ----------
@@ -36,7 +44,13 @@ Package Contents
    Bases: :py:obj:`luigi.WrapperTask`
 
 
-   Use for tasks that only wrap other tasks and that by definition are done if all their requirements exist.
+   A wrapper task that runs the entire pipeline from end to end.
+
+   Attributes:
+       bin_dir (luigi.Parameter): Directory containing binaries.
+       ntasks (luigi.IntParameter): Number of tasks for parallel execution.
+       rerun_all (luigi.BoolParameter): Whether to rerun all tasks.
+       config (PydanticModelParameter): Path to the configuration file.
 
 
    .. py:attribute:: bin_dir
@@ -53,15 +67,10 @@ Package Contents
 
    .. py:method:: requires()
 
-      The Tasks that this Task depends on.
+      Specifies the full pipeline dependencies.
 
-      A Task will only run if all of the Tasks that it requires are completed.
-      If your Task does not require any other Tasks, then you don't need to
-      override this method. Otherwise, a subclass can override this method
-      to return a single Task, a list of Task instances, or a dict whose
-      values are Task instances.
-
-      See :ref:`Task.requires`
+      Yields:
+          ConvertLFAToNetCDF: The final task in the pipeline.
 
 
 

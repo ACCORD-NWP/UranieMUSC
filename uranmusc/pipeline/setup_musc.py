@@ -1,3 +1,8 @@
+"""Module for setting up MUSC-specific configurations.
+
+This module contains Luigi tasks for setting up MUSC run scripts
+and namelists.
+"""
 import logging
 import shutil
 import subprocess
@@ -14,9 +19,19 @@ logger = logging.getLogger("luigi-interface")
 
 
 class SetupMusc(RerunBaseTask):
+    """Luigi task to set up MUSC environment.
+
+    Attributes:
+        bin_dir (luigi.Parameter): Directory containing binaries.
+    """
     bin_dir = luigi.Parameter(default=None)
 
     def requires(self):
+        """Specifies the dependencies for this task.
+
+        Returns:
+            list: A list of tasks that must be completed before this task.
+        """
         return [
             CloneRepos(rerun_all=self.rerun_all, config=self.config),
             SetupExperiment(rerun_all=self.rerun_all, config=self.config),
@@ -26,6 +41,11 @@ class SetupMusc(RerunBaseTask):
         ]
 
     def output(self):
+        """Specifies the output targets for this task.
+
+        Returns:
+            list: A list of luigi.LocalTarget objects for the MUSC setup files.
+        """
         return [
             luigi.LocalTarget(self.config.home_exp_dir / "musc_run.sh"),
             luigi.LocalTarget(self.config.home_exp_dir / "musc_convert_netcdf.sh"),
@@ -33,7 +53,10 @@ class SetupMusc(RerunBaseTask):
         ]
 
     def run(self):
-        """Build the experiment."""
+        """Executes the MUSC setup.
+
+        Runs the Harmonie MUSC setup script to prepare the experiment directory.
+        """
         logger.info(f"Setting up MUSC for experiment {self.config.experiment.name}")
 
         subprocess.run(
@@ -49,9 +72,19 @@ class SetupMusc(RerunBaseTask):
 
 
 class SetupMuscNamelists(RerunBaseTask):
+    """Luigi task to set up MUSC namelists.
+
+    Attributes:
+        bin_dir (luigi.Parameter): Directory containing binaries.
+    """
     bin_dir = luigi.Parameter(default=None)
 
     def requires(self):
+        """Specifies the dependencies for this task.
+
+        Returns:
+            list: A list of tasks that must be completed before this task.
+        """
         return [
             CloneRepos(rerun_all=self.rerun_all),
             SetupExperiment(rerun_all=self.rerun_all),
@@ -59,12 +92,21 @@ class SetupMuscNamelists(RerunBaseTask):
         ]
 
     def output(self):
+        """Specifies the output targets for this task.
+
+        Returns:
+            list: A list of luigi.LocalTarget objects for the generated namelists.
+        """
         atm_namelist_name = "namelist_atm_" + self.config.experiment.musc_id
         return [
             luigi.LocalTarget(self.config.home_exp_dir / atm_namelist_name),
         ]
 
     def run(self):
+        """Executes the MUSC namelist setup.
+
+        Either copies existing namelists or generates them via a shell script.
+        """
         doe = self.config.experiment.design_of_experiment
         if doe.data_files.namelist_dir is not None:
             namelist_dir = doe.data_files.namelist_dir / self.config.experiment.musc_case

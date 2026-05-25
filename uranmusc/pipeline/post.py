@@ -1,3 +1,9 @@
+"""Module for post-processing Luigi tasks.
+
+This module contains Luigi tasks for converting LFA output files
+to NetCDF format.
+"""
+
 import logging
 import os
 import shutil
@@ -19,10 +25,23 @@ logger = logging.getLogger("luigi-interface")
 
 
 class ConvertLFAToNetCDF(RerunBaseTask):
+    """Luigi task to convert LFA files to NetCDF.
+
+    Attributes:
+        bin_dir (luigi.Parameter): Directory containing binaries.
+        ntasks (luigi.IntParameter): Number of tasks for parallel execution via
+            Slurm.
+    """
+
     bin_dir = luigi.Parameter(default=None)
     ntasks = luigi.IntParameter(default=1)
 
     def requires(self):
+        """Specifies the dependencies for this task.
+
+        Returns:
+            list: A list of tasks that must be completed before this task.
+        """
         return [
             BuildDDH(rerun_all=self.rerun_all, config=self.config),
             CloneRepos(rerun_all=self.rerun_all, config=self.config),
@@ -41,6 +60,11 @@ class ConvertLFAToNetCDF(RerunBaseTask):
         ]
 
     def output(self):
+        """Specifies the output targets for this task.
+
+        Returns:
+            list: A list of luigi.LocalTarget objects for each expected NetCDF file.
+        """
         # Define the expected nc files based on the number of output dirs
         uranie_output_dirs = list(self.config.uranie_dir.glob("UranieLauncher_*"))
         run_numbers = [int(dir_.name.split("_")[1]) for dir_ in uranie_output_dirs]
@@ -64,6 +88,11 @@ class ConvertLFAToNetCDF(RerunBaseTask):
         return [luigi.LocalTarget(nc_file) for nc_file in nc_files]
 
     def run(self):
+        """Executes the conversion from LFA to NetCDF.
+
+        Prepares the conversion environment by copying configuration files,
+        generates a Slurm batch script, and submits it via `sbatch`.
+        """
         # Copy over specific files to prepare for running conversion from output dirs
         output_dirs = [Path(output_file.path).parent for output_file in self.output()]
         for dir_ in output_dirs:
