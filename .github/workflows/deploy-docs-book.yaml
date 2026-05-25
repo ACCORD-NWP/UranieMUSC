@@ -1,0 +1,57 @@
+#.github/workflows/tests.yaml
+name: Build and Deploy Docs
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - master
+    - main
+
+jobs:
+  build-book:
+    if: github.repository_owner == 'ACCORD-NWP'
+
+    name: "Build docs book"
+    runs-on: ubuntu-latest
+    permissions:
+      repository-projects: read
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Build book
+        run: |
+          cd docs/
+          uv run --only-group docs jupyter-book build --html --ci
+
+      # Upload the book's HTML as an artifact
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: "docs/_build/html"
+
+  deploy-book:
+    if: github.repository_owner == 'ACCORD-NWP'
+    name: "Deploy docs book"
+    needs: build-book
+    permissions:
+      pages: write
+      id-token: write
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: "ubuntu-latest"
+      # Deploy the book's HTML to GitHub Pages
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
