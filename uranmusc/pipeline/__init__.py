@@ -1,3 +1,9 @@
+"""Module providing a high-level interface for the uranmusc pipeline.
+
+This module exports key Luigi tasks and parameters used to orchestrate
+the full simulation workflow, from cloning repositories to post-processing.
+"""
+
 import luigi
 
 from uranmusc.pipeline.base import BaseTask, RerunBaseTask
@@ -27,12 +33,26 @@ __all__ = [
 
 
 class Run(luigi.WrapperTask):
+    """A wrapper task that runs the entire pipeline from end to end.
+
+    Attributes:
+        bin_dir (luigi.Parameter): Directory containing binaries.
+        ntasks (luigi.IntParameter): Number of tasks for parallel execution.
+        rerun_all (luigi.BoolParameter): Whether to rerun all tasks.
+        config (PydanticModelParameter): Path to the configuration file.
+    """
+
     bin_dir = luigi.Parameter(default=None)
     ntasks = luigi.IntParameter(default=1)
     rerun_all = luigi.BoolParameter()
     config = PydanticModelParameter(default="config.yml")
 
     def requires(self):
+        """Specifies the full pipeline dependencies.
+
+        Yields:
+            ConvertLFAToNetCDF: The final task in the pipeline.
+        """
         yield ConvertLFAToNetCDF(
             bin_dir=self.bin_dir,
             ntasks=self.ntasks,

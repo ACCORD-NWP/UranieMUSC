@@ -1,0 +1,27 @@
+name: Linting Checks
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '**.py'
+      - '**.toml'
+      - '.github/workflows/linting.yaml'
+  push:
+    branches:
+      - '**' # Every branch
+    paths:
+      - '**.py'
+      - '**.toml'
+      - '.github/workflows/linting.yaml'
+
+jobs:
+  linting:
+    if: github.repository_owner == 'ACCORD-NWP'
+    name: Run Linters
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - uses: actions/setup-python@v6
+    - uses: pre-commit/action@v3.0.1

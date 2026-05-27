@@ -9,4 +9,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Unify DOE script and merge DOE config with the main config. [#2] (https://github.com/ACCORD-NWP/UranieMUSC/pull/2) (@mfroelund)
+- Update and improve documentation in Jupyter Book. [#3] (https://github.com/accord-nwp/uraniemusc/pull/3) (@mfroelund)
+- Unify DOE script and merge DOE config with the main config. [#2] (https://github.com/accord-nwp/uraniemusc/pull/2) (@mfroelund)

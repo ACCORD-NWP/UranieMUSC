@@ -1,3 +1,9 @@
+"""Module for building experiments and libraries.
+
+This module contains Luigi tasks for building the Harmonie experiment
+and installing the DDH library.
+"""
+
 import logging
 import os
 import subprocess
@@ -15,15 +21,37 @@ logger = logging.getLogger("luigi-interface")
 
 
 class BuildExperiment(RerunBaseTask):
+    """Luigi task to build the Harmonie experiment.
+
+    Attributes:
+        bin_dir (luigi.Parameter): Directory containing binaries. If provided,
+            the experiment is installed without rebuilding.
+    """
+
     bin_dir = luigi.Parameter(default=None)
 
     def requires(self):
+        """Specifies the dependencies for this task.
+
+        Returns:
+            list: A list of tasks that must be completed before this task.
+        """
         return SetupExperiment(rerun_all=self.rerun_all, config=self.config)
 
     def output(self):
+        """Specifies the output target for this task.
+
+        Returns:
+            luigi.LocalTarget: A target file indicating the experiment is locked.
+        """
         return luigi.LocalTarget(self.config.home_exp_dir / "experiment_is_locked")
 
     def run(self):
+        """Executes the experiment build or installation.
+
+        If `bin_dir` is provided and exists, it installs the experiment using
+        the existing binaries. Otherwise, it runs the build command.
+        """
         exp_name = self.config.experiment.name
         bin_dir = self.config.general.bin_dir
         if bin_dir is not None:
@@ -60,14 +88,27 @@ class BuildExperiment(RerunBaseTask):
 
 
 class BuildDDH(RerunBaseTask):
+    """Luigi task to install the DDH library."""
+
     def output(self):
+        """Specifies the output target for this task.
+
+        Returns:
+            luigi.LocalTarget: A target file representing the lfac path.
+        """
         lfac_path = self.config.git_repos.ddhtoolbox.repo / "tools/lfa/lfac"
         return luigi.LocalTarget(lfac_path)
 
     def requires(self):
+        """Specifies the dependencies for this task.
+
+        Returns:
+            list: A list of tasks that must be completed before this task.
+        """
         return CloneRepos(rerun_all=self.rerun_all, config=self.config)
 
     def run(self):
+        """Executes the DDH library installation."""
         logger.info("Installing DDH library")
         subprocess.run(
             "export PATH=.:$PATH; install clean; install;",
